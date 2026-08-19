@@ -160,47 +160,128 @@ class AcademicCalendar extends Model implements Eventable
     }
 
     /**
-     * Boot method untuk auto-set semester dan color
+     * Boot method untuk validasi periode, auto-set semester, dan auto-set color
      */
     protected static function booted()
     {
         static::saving(function (AcademicCalendar $event): void {
-            $academicYear = $event->academicYear;
+            static::validateEventDateOrder($event);
 
-            if (! $academicYear && $event->academic_year_id) {
-                $academicYear = AcademicYear::query()->find($event->academic_year_id);
-            }
+            $academicYear = static::resolveAcademicYear($event);
 
-            if (! $academicYear) {
-                throw ValidationException::withMessages([
-                    'academic_year_id' => 'Event harus terikat pada Tahun Akademik.',
-                ]);
-            }
-
-            if ($event->event_date) {
-                $end = $event->event_end_date ?? $event->event_date;
-
-                if (
-                    $event->event_date->lt($academicYear->start_date)
-                    || $end->gt($academicYear->end_date)
-                ) {
-                    throw ValidationException::withMessages([
-                        'event_date' => "Tanggal event harus berada dalam periode Tahun Akademik ({$academicYear->start_date->format('d M Y')} – {$academicYear->end_date->format('d M Y')}).",
-                    ]);
-                }
-
-                $semester = $academicYear->getSemester($event->event_date);
-
-                if ($semester) {
-                    $event->semester = SemesterEnum::from(
-                        $semester,
-                    );
-                }
-            }
+            static::validateWithinAcademicYear($event, $academicYear);
+            static::assignSemester($event, $academicYear);
+            static::normalizeHolidayFlags($event);
 
             if (empty($event->color)) {
                 $event->color = $event->default_color;
             }
         });
+    }
+
+    /**
+     * Jaga konsistensi antara event_type dan flag is_national_holiday /
+     * is_school_holiday.
+     *
+     * - Untuk event_type yang tidak mungkin berupa hari libur (mis.
+     *   EXAMINATION, REPORT, CEREMONY, dst), kedua flag dipaksa false
+     *   secara otomatis — mencegah data usang tersisa saat admin
+     *   mengganti tipe event tapi lupa mematikan flag lama.
+     * - Untuk event_type HOLIDAY, setidaknya salah satu flag (nasional
+     *   atau sekolah) wajib diisi — event "Libur" tanpa keterangan jenis
+     *   libur apapun tidak bermakna.
+     * - NATIONALDAY sengaja tidak diwajibkan mengisi flag, karena tidak
+     *   semua Hari Nasional adalah hari libur.
+     */
+    protected static function normalizeHolidayFlags(AcademicCalendar $event): void
+    {
+        if (! $event->event_type?->isHolidayEligible()) {
+            $event->is_national_holiday = false;
+            $event->is_school_holiday = false;
+
+            return;
+        }
+
+        if (
+            $event->event_type === EventType::HOLIDAY
+            && ! $event->is_national_holiday
+            && ! $event->is_school_holiday
+        ) {
+            throw ValidationException::withMessages([
+                'is_national_holiday' => 'Event bertipe Libur harus ditandai sebagai libur nasional dan/atau libur sekolah.',
+            ]);
+        }
+    }
+
+    /**
+     * event_end_date (jika diisi) tidak boleh sebelum event_date.
+     * Tanpa ini, getDurationAttribute() bisa menghasilkan angka negatif
+     * dan toCalendarEvent() bisa membuat rentang kalender yang terbalik.
+     */
+    protected static function validateEventDateOrder(AcademicCalendar $event): void
+    {
+        if ($event->event_date && $event->event_end_date && $event->event_end_date->lt($event->event_date)) {
+            throw ValidationException::withMessages([
+                'event_end_date' => 'Tanggal selesai event tidak boleh sebelum tanggal mulai event.',
+            ]);
+        }
+    }
+
+    /**
+     * Ambil AcademicYear terkait, dari relasi yang sudah di-load
+     * atau query manual jika belum (mis. saat set academic_year_id
+     * langsung tanpa memuat relasinya).
+     */
+    protected static function resolveAcademicYear(AcademicCalendar $event): AcademicYear
+    {
+        $academicYear = $event->academicYear;
+
+        if (! $academicYear && $event->academic_year_id) {
+            $academicYear = AcademicYear::query()->find($event->academic_year_id);
+        }
+
+        if (! $academicYear) {
+            throw ValidationException::withMessages([
+                'academic_year_id' => 'Event harus terikat pada Tahun Akademik.',
+            ]);
+        }
+
+        return $academicYear;
+    }
+
+    /**
+     * Event tidak boleh berada di luar periode Tahun Akademik yang terikat.
+     */
+    protected static function validateWithinAcademicYear(AcademicCalendar $event, AcademicYear $academicYear): void
+    {
+        if (! $event->event_date) {
+            return;
+        }
+
+        $end = $event->event_end_date ?? $event->event_date;
+
+        if ($event->event_date->lt($academicYear->start_date) || $end->gt($academicYear->end_date)) {
+            throw ValidationException::withMessages([
+                'event_date' => "Tanggal event harus berada dalam periode Tahun Akademik ({$academicYear->start_date->format('d M Y')} – {$academicYear->end_date->format('d M Y')}).",
+            ]);
+        }
+    }
+
+    /**
+     * Semester selalu diturunkan otomatis dari tanggal event dan
+     * Tahun Akademik terkait — tidak bisa diisi manual oleh admin,
+     * sesuai aturan bisnis.
+     */
+    protected static function assignSemester(AcademicCalendar $event, AcademicYear $academicYear): void
+    {
+        if (! $event->event_date) {
+            return;
+        }
+
+        $semester = $academicYear->getSemester($event->event_date);
+
+        if ($semester) {
+            $event->semester = $semester;
+        }
     }
 }

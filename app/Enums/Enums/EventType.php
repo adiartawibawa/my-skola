@@ -46,4 +46,23 @@ enum EventType: string
             self::OTHER => '#DFE6E9',
         };
     }
+
+    /**
+     * Tipe event yang SECARA KONSEP boleh ditandai sebagai hari libur
+     * (is_national_holiday / is_school_holiday).
+     *
+     * Sengaja tidak dipakai untuk auto-derive penuh nilai boolean-nya,
+     * karena NATIONALDAY tidak selalu berarti hari libur (mis. Hari
+     * Pendidikan Nasional biasanya bukan hari libur, sementara Hari
+     * Kemerdekaan libur) — keputusan itu tetap perlu input admin.
+     * Method ini hanya dipakai untuk MENOLAK kombinasi yang jelas tidak
+     * masuk akal, misalnya EXAMINATION ditandai is_national_holiday.
+     */
+    public function isHolidayEligible(): bool
+    {
+        return match ($this) {
+            self::HOLIDAY, self::NATIONALDAY => true,
+            default => false,
+        };
+    }
 }
