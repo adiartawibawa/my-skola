@@ -4,9 +4,9 @@ namespace App\Filament\Clusters\Academic\Resources\AcademicYears\Pages;
 
 use App\Filament\Clusters\Academic\Resources\AcademicYears\AcademicYearResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ManageRecords;
+use Filament\Resources\Pages\ListRecords;
 
-class ManageAcademicYears extends ManageRecords
+class ListAcademicYears extends ListRecords
 {
     protected static string $resource = AcademicYearResource::class;
 

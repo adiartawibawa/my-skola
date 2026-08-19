@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Filament\Clusters\Academic\Resources\AcademicYears\Schemas;
+
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Schema;
+
+class AcademicYearForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('code')
+                    ->required(),
+                TextInput::make('name')
+                    ->required(),
+                DatePicker::make('start_date')
+                    ->required(),
+                DatePicker::make('end_date')
+                    ->required(),
+                Toggle::make('is_active')
+                    ->required(),
+                Textarea::make('description')
+                    ->default(null)
+                    ->columnSpanFull(),
+            ]);
+    }
+}

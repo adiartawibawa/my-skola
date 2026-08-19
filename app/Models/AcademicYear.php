@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\Enums\SemesterEnum;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,13 +28,15 @@ class AcademicYear extends Model
     /**
      * Boot method untuk menambahkan event
      */
-    protected static function booted()
+    protected static function booted(): void
     {
-        static::saving(function ($academicYear) {
-            // Jika di-set menjadi aktif, nonaktifkan semua yang lain
+        static::saving(function (AcademicYear $academicYear): void {
             if ($academicYear->is_active) {
-                static::where('id', '!=', $academicYear->id)
-                    ->update(['is_active' => false]);
+                static::query()
+                    ->whereKeyNot($academicYear->getKey())
+                    ->update([
+                        'is_active' => false,
+                    ]);
             }
         });
     }
@@ -60,10 +64,9 @@ class AcademicYear extends Model
      */
     public function scopeCurrent($query)
     {
-        $today = now()->toDateString();
-
-        return $query->where('start_date', '<=', $today)
-            ->where('end_date', '>=', $today);
+        return $query
+            ->where('start_date', '<=', today())
+            ->where('end_date', '>=', today());
     }
 
     /**
@@ -71,24 +74,25 @@ class AcademicYear extends Model
      */
     public function isCurrent(): bool
     {
-        $today = now()->toDateString();
-
-        return $this->start_date <= $today && $this->end_date >= $today;
+        return today()->between(
+            $this->start_date,
+            $this->end_date,
+        );
     }
 
     /**
      * Mendapatkan semester berdasarkan tanggal
      */
-    public function getSemester($date = null): ?string
+    public function getSemester(Carbon|string|null $date = null): ?SemesterEnum
     {
-        $date = $date ?? now()->toDateString();
+        $date = $date ? Carbon::parse($date) : today();
 
-        if (! $this->isCurrent()) {
+        if ($date->lt($this->start_date) || $date->gt($this->end_date)) {
             return null;
         }
 
         $midDate = $this->start_date->copy()->addMonths(6);
 
-        return $date <= $midDate ? 'Ganjil' : 'Genap';
+        return $date->lte($midDate) ? SemesterEnum::GANJIL : SemesterEnum::GENAP;
     }
 }
