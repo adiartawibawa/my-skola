@@ -87,10 +87,6 @@ class AcademicCalendarWidget extends CalendarWidget
      * Guava. Kita reuse AcademicCalendarResource::form() secara
      * eksplisit (bukan mengandalkan auto-discovery Guava) supaya
      * tidak ada dua definisi form yang bisa saling menyimpang.
-     *
-     * Nama method WAJIB persis "defaultSchema" (bukan getSchema) —
-     * ini nama hook resmi dari Guava untuk schema tunggal yang dipakai
-     * di seluruh model pada widget ini.
      */
     public function defaultSchema(Schema $schema): Schema
     {
