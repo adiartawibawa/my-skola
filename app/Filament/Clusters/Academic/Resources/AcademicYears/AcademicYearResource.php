@@ -3,7 +3,6 @@
 namespace App\Filament\Clusters\Academic\Resources\AcademicYears;
 
 use App\Filament\Clusters\Academic\AcademicCluster;
-use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\CalendarAcademic;
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\CreateAcademicYear;
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\EditAcademicYear;
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\ListAcademicYears;
@@ -11,6 +10,7 @@ use App\Filament\Clusters\Academic\Resources\AcademicYears\Schemas\AcademicYearF
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Tables\AcademicYearsTable;
 use App\Models\AcademicYear;
 use BackedEnum;
+use Carbon\Carbon;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,11 +20,15 @@ class AcademicYearResource extends Resource
 {
     protected static ?string $model = AcademicYear::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
     protected static ?string $cluster = AcademicCluster::class;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    protected static ?string $navigationLabel = 'Tahun Akademik';
+
+    protected static ?string $pluralModelLabel = 'Tahun Akademik';
 
     public static function form(Schema $schema): Schema
     {
@@ -49,7 +53,21 @@ class AcademicYearResource extends Resource
             'index' => ListAcademicYears::route('/'),
             'create' => CreateAcademicYear::route('/create'),
             'edit' => EditAcademicYear::route('/{record}/edit'),
-            'calendar' => CalendarAcademic::route('/{record}/calendar'),
         ];
+    }
+
+    /**
+     * Ubah start_year (field bantu, bukan kolom model) menjadi start_date
+     * yang sesungguhnya. end_date sengaja TIDAK dikirim — AcademicYear
+     * model men-derive-nya sendiri di saving hook.
+     */
+    public static function transformStartYear(array $data): array
+    {
+        if (isset($data['start_year'])) {
+            $data['start_date'] = Carbon::create((int) $data['start_year'], 7, 1)->toDateString();
+            unset($data['start_year']);
+        }
+
+        return $data;
     }
 }
