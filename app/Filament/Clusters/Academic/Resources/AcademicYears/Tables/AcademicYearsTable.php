@@ -2,9 +2,7 @@
 
 namespace App\Filament\Clusters\Academic\Resources\AcademicYears\Tables;
 
-use App\Filament\Clusters\Academic\Pages\AcademicCalendarPage;
 use App\Models\AcademicYear;
-use App\Support\AcademicYearContext;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -21,6 +19,10 @@ class AcademicYearsTable
     {
         return $table
             ->columns([
+                IconColumn::make('is_active')
+                    ->label('Aktif')
+                    ->boolean(),
+
                 TextColumn::make('name')
                     ->label('Tahun Akademik')
                     ->searchable()
@@ -40,10 +42,6 @@ class AcademicYearsTable
                     ->date('d M Y')
                     ->sortable(),
 
-                IconColumn::make('is_active')
-                    ->label('Aktif')
-                    ->boolean(),
-
                 TextColumn::make('academic_calendars_count')
                     ->label('Jumlah Event')
                     ->counts('academicCalendars')
@@ -54,17 +52,12 @@ class AcademicYearsTable
                 TernaryFilter::make('is_active')
                     ->label('Status Aktif'),
             ])
-
             ->recordActions([
                 Action::make('viewCalendar')
                     ->label('Lihat Kalender')
                     ->icon('heroicon-o-calendar-days')
                     ->iconButton()
-                    ->action(function (AcademicYear $record) {
-                        AcademicYearContext::set($record->id);
-
-                        return redirect(AcademicCalendarPage::getUrl());
-                    }),
+                    ->url(fn (AcademicYear $record) => route('filament.admin.academic.resources.academic-years.calendar', ['record' => $record])),
 
                 EditAction::make()
                     ->iconButton(),

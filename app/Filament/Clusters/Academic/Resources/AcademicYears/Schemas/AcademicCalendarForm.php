@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Clusters\Academic\Resources\AcademicCalendars\Schemas;
+namespace App\Filament\Clusters\Academic\Resources\AcademicYears\Schemas;
 
 use App\Enums\Enums\EventType;
 use App\Models\AcademicYear;

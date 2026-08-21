@@ -2,7 +2,7 @@
 
 namespace App\Filament\Clusters\Academic\Widgets;
 
-use App\Filament\Clusters\Academic\Resources\AcademicCalendars\AcademicCalendarResource;
+use App\Filament\Clusters\Academic\Resources\AcademicYears\Schemas\AcademicCalendarForm;
 use App\Models\AcademicCalendar;
 use App\Models\AcademicYear;
 use App\Support\AcademicYearContext;
@@ -13,8 +13,6 @@ use Guava\Calendar\Filament\CalendarWidget;
 use Guava\Calendar\ValueObjects\DateClickInfo;
 use Guava\Calendar\ValueObjects\FetchInfo;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 
 /**
@@ -90,7 +88,7 @@ class AcademicCalendarWidget extends CalendarWidget
      */
     public function defaultSchema(Schema $schema): Schema
     {
-        return AcademicCalendarResource::form($schema);
+        return AcademicCalendarForm::configure($schema);
     }
 
     /**
@@ -112,7 +110,7 @@ class AcademicCalendarWidget extends CalendarWidget
         return CreateAction::make('createAcademicCalendar')
             ->label('Tambah Event')
             ->model(AcademicCalendar::class)
-            ->schema(fn (Schema $schema) => AcademicCalendarResource::form($schema))
+            ->schema(fn (Schema $schema) => AcademicCalendarForm::configure($schema))
             ->mountUsing(function ($form, ?DateClickInfo $info = null) {
                 $date = $this->extractClickedDate($info);
                 $academicYear = $this->resolveAcademicYearForDate($date);

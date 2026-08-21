@@ -3,6 +3,7 @@
 namespace App\Filament\Clusters\Academic\Resources\AcademicYears;
 
 use App\Filament\Clusters\Academic\AcademicCluster;
+use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\AcademicYearCalendar;
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\CreateAcademicYear;
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\EditAcademicYear;
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Pages\ListAcademicYears;
@@ -53,6 +54,7 @@ class AcademicYearResource extends Resource
             'index' => ListAcademicYears::route('/'),
             'create' => CreateAcademicYear::route('/create'),
             'edit' => EditAcademicYear::route('/{record}/edit'),
+            'calendar' => AcademicYearCalendar::route('/{record}/calendar'),
         ];
     }
 
