@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\EventType;
-use App\Enums\Enums\SemesterEnum;
+use App\Enums\EventType;
+use App\Enums\SemesterEnum;
 use Guava\Calendar\Contracts\Eventable;
 use Guava\Calendar\ValueObjects\CalendarEvent;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

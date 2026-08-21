@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Enums\RoleEnum;
 use App\Filament\Imports\UserImporter;
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\Action;
@@ -21,7 +22,7 @@ class ListUsers extends ListRecords
         return [
             CreateAction::make(),
             ImportAction::make()
-                ->label('')
+                ->label('Import')
                 ->icon(Heroicon::OutlinedArrowUpTray)
                 ->color('danger')
                 ->maxRows(1000)
@@ -32,34 +33,38 @@ class ListUsers extends ListRecords
                 ->importer(UserImporter::class),
 
             Action::make('download_template')
-                ->label('')
+                ->label('Template')
                 ->icon(Heroicon::OutlinedDocumentArrowDown)
                 ->color('gray')
                 ->schema([
                     Select::make('template_type')
                         ->label('Pilih template')
                         ->options([
+                            // PERBAIKAN: sebelumnya value di sini adalah
+                            // 'all', tapi seluruh match($type) di bawah
+                            // hanya mengenali 'user_only' — memilih "All
+                            // Users" akan selalu UnhandledMatchError.
                             'student' => 'Template untuk Murid (Siswa)',
                             'teacher' => 'Template untuk Guru',
-                            'all' => 'Template Umum (All Users)',
+                            'user_only' => 'Template Umum (All Users)',
                         ])
-                        ->default('all')
+                        ->default('user_only')
                         ->required()
                         ->native(false)
                         ->helperText('Pilih template sesuai dengan role user yang akan diimport'),
                 ])
                 ->action(function (array $data) {
-                    // Panggil method download berdasarkan pilihan
                     return $this->downloadTemplate($data['template_type']);
                 })
                 ->modalHeading('Download Template Import')
                 ->modalSubmitActionLabel('Download')
                 ->modalCancelActionLabel('Batal'),
         ];
+
     }
 
     /**
-     * Download template berdasarkan tipe
+     * Download template berdasarkan tipe.
      */
     protected function downloadTemplate(string $type): StreamedResponse
     {
@@ -72,7 +77,9 @@ class ListUsers extends ListRecords
     }
 
     /**
-     * Generate CSV template
+     * Generate file CSV template beserta baris contoh dan instruksi.
+     * Tidak berubah dari versi sebelumnya — bug-nya ada di data yang
+     * di-generate (headers/example/instructions), bukan di sini.
      */
     protected function generateCsvTemplate(
         array $headers,
@@ -83,20 +90,13 @@ class ListUsers extends ListRecords
         $callback = function () use ($headers, $example, $instructions) {
             $file = fopen('php://output', 'w');
 
-            // UTF-8 BOM for Excel
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // Write headers
             fputcsv($file, $headers);
-
-            // Write example row
             fputcsv($file, $example);
-
-            // Write empty template rows
             fputcsv($file, array_fill(0, count($headers), ''));
             fputcsv($file, array_fill(0, count($headers), ''));
 
-            // Add instructions
             fputcsv($file, ['# ========== INSTRUKSI IMPORT ==========']);
             fputcsv($file, ['# 1. Jangan hapus atau ubah baris header (baris pertama)']);
             fputcsv($file, ['# 2. Isi data mulai baris ke-3 (setelah contoh)']);
@@ -121,22 +121,25 @@ class ListUsers extends ListRecords
     }
 
     /**
-     * Get headers berdasarkan tipe template (Disesuaikan dengan model)
+     * Header kolom per tipe template — disamakan dengan kolom yang
+     * benar-benar dibaca UserImporter::getColumns() sekarang (termasuk
+     * 'nis*' yang sebelumnya hilang padahal wajib di database, dan
+     * 'role' singular, bukan lagi 'roles').
      */
     protected function getTemplateHeaders(string $type): array
     {
-        // Base headers untuk tabel users
         $baseHeaders = [
+            'username',
             'name*',
             'email*',
             'password',
-            'email_verified_at',
-            'roles',
+            'role*',
         ];
 
         return match ($type) {
             'student' => array_merge($baseHeaders, [
-                'nisn*',              // wajib untuk siswa
+                'nis*',
+                'nisn*',
                 'tempat_lahir',
                 'tanggal_lahir*',
                 'nama_ayah',
@@ -148,98 +151,111 @@ class ListUsers extends ListRecords
             ]),
 
             'teacher' => array_merge($baseHeaders, [
-                'nuptk*',              // wajib untuk guru
-                'status_kepegawaian*', // tetap, kontrak, honorer
+                'nip',
+                'nuptk*',
+                'nik',
+                'status_kepegawaian*',
                 'bidang_studi*',
-                'golongan',            // IV/a, III/d, dll
+                'golongan',
                 'tanggal_masuk*',
-                'pendidikan_terakhir*', // S1, S2, D3, dll
+                'pendidikan_terakhir*',
             ]),
 
-            'user_only' => array_merge($baseHeaders),
+            'user_only' => $baseHeaders,
         };
     }
 
     /**
-     * Get example data berdasarkan tipe template (Disesuaikan dengan model)
+     * Baris contoh per tipe template — urutan HARUS sama persis dengan
+     * getTemplateHeaders(). Nilai status_kepegawaian/golongan/
+     * pendidikan_terakhir memakai value enum yang valid, supaya baris
+     * contoh sendiri tidak gagal kalau di-import apa adanya.
      */
     protected function getExampleData(string $type): array
     {
         return match ($type) {
             'student' => [
-                'Budi Santoso',                    // name
-                'budi.siswa@example.com',         // email
-                'siswa123',                        // password
-                '2024-01-15 08:00:00',             // email_verified_at
-                'student',
-                '1234567890',                       // nisn
-                'Jakarta',                          // tempat_lahir
-                '2010-05-15',                        // tanggal_lahir
-                'Ahmad Santoso',                     // nama_ayah
-                'Siti Aminah',                       // nama_ibu
-                'Wiraswasta',                         // pekerjaan_orang_tua
-                'Jl. Merdeka No. 123, Jakarta',       // alamat_orang_tua
-                '081234567890',                        // no_telp_orang_tua
-                '1',                                    // is_active (1 = aktif, 0 = tidak aktif)
+                '',                                    // username (opsional, fallback ke email)
+                'Budi Santoso',
+                'budi.siswa@example.com',
+                '',                                     // password (kosong = auto-generate)
+                RoleEnum::STUDENT->value,
+                '2026001',                               // nis
+                '1234567890',                            // nisn
+                'Jakarta',
+                '2010-05-15',
+                'Ahmad Santoso',
+                'Siti Aminah',
+                'Wiraswasta',
+                'Jl. Merdeka No. 123, Jakarta',
+                '081234567890',
+                '1',
             ],
 
             'teacher' => [
-                'Siti Rahayu',                       // name
-                'siti.guru@example.com',            // email
-                'guru123',                           // password
-                '2024-01-15 08:00:00',                // email_verified_at
-                'teacher',
-                '1234567890123456',                    // nuptk
-                'PNS',                                 // status_kepegawaian
-                'Matematika',                           // bidang_studi
-                'IV/a',                                 // golongan
-                '2015-07-01',                            // tanggal_masuk
-                'S2',               // pendidikan_terakhir
+                '',
+                'Siti Rahayu',
+                'siti.guru@example.com',
+                '',
+                RoleEnum::TEACHER->value,
+                '',                                       // nip (opsional)
+                '1234567890123456',                        // nuptk
+                '',                                         // nik (opsional)
+                'PNS',
+                'Matematika',
+                'IV/a',
+                '2015-07-01',
+                'S2',
             ],
 
             'user_only' => [
-                'Admin User',                          // name
-                'admin@example.com',                   // email
-                'admin123',                             // password
-                '2024-01-15 08:00:00',                   // email_verified_at
-                'admin',                              // roles (multiple dipisah koma)
+                'admin1',
+                'Admin User',
+                'admin@example.com',
+                '',
+                RoleEnum::ADMIN->value,
             ],
         };
     }
 
     /**
-     * Get instructions berdasarkan tipe template
+     * Instruksi per tipe template. Diperbaiki: instruksi "multiple
+     * roles pisahkan koma" sebelumnya kontradiktif dengan RoleEnum yang
+     * memang single-value — dihapus, diganti daftar role valid yang
+     * diambil langsung dari RoleEnum (supaya tidak bisa lagi tidak
+     * sinkron dengan enum di masa depan).
      */
     protected function getTemplateInstructions(string $type): array
     {
+        $validRoles = implode(', ', array_column(RoleEnum::cases(), 'value'));
+
         $commonInstructions = [
-            '# 6. Untuk multiple roles, pisahkan dengan koma (contoh: admin,guru)',
-            '# 7. Is_active: 1 untuk aktif, 0 untuk tidak aktif',
+            "# 6. Role yang valid (isi salah satu): {$validRoles}",
+            '# 7. Username boleh dikosongkan — sistem akan mencocokkan berdasarkan email sebagai gantinya',
         ];
 
         return match ($type) {
             'student' => array_merge($commonInstructions, [
-                '# 8. NISN harus unique dan 10 digit angka',
-                '# 9. Tanggal lahir minimal 5 tahun yang lalu untuk siswa',
-                '# 10. Format tanggal: YYYY-MM-DD',
+                '# 8. NIS dan NISN harus unik dan wajib diisi',
+                '# 9. Format tanggal: YYYY-MM-DD',
+                '# 10. is_active: 1 untuk aktif, 0 untuk tidak aktif (kosongkan = aktif)',
             ]),
 
             'teacher' => array_merge($commonInstructions, [
-                '# 8. NUPTK harus unique dan 16 digit',
-                '# 9. Status kepegawaian: PNS, PPPK, Honorer, Kontrak',
-                '# 10. Golongan: I/a, I/b, I/c, I/d, II/a, II/b, II/c, II/d, III/a, III/b, III/c, III/d, IV/a, IV/b, IV/c, IV/d',
-                '# 11. Pendidikan terakhir: SMA, D3, S1, S2, S3',
+                '# 8. NUPTK wajib diisi dan unik (16 digit)',
+                '# 9. Status kepegawaian yang valid: PNS, PPPK, Honorer, Kontrak',
+                '# 10. Golongan yang valid: I/a - IV/d (kosongkan jika tidak berlaku, mis. Honorer)',
+                '# 11. Pendidikan terakhir yang valid: SMA, D3, S1, S2, S3',
             ]),
 
             'user_only' => array_merge($commonInstructions, [
-                '# 8. Roles yang tersedia: admin, guru, siswa, user',
-                '# 9. User tanpa profile hanya bisa login sebagai user biasa',
+                '# 8. Template ini untuk role admin/user yang tidak punya profil siswa/guru',
             ]),
         };
     }
 
     /**
-     * Get filename berdasarkan tipe template
+     * Nama file template per tipe.
      */
     protected function getTemplateFilename(string $type): string
     {

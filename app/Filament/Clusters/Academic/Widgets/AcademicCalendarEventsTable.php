@@ -2,8 +2,8 @@
 
 namespace App\Filament\Clusters\Academic\Widgets;
 
-use App\Enums\Enums\EventType;
-use App\Enums\Enums\SemesterEnum;
+use App\Enums\EventType;
+use App\Enums\SemesterEnum;
 use App\Filament\Clusters\Academic\Resources\AcademicYears\Schemas\AcademicCalendarForm;
 use App\Models\AcademicCalendar;
 use App\Support\AcademicYearContext;

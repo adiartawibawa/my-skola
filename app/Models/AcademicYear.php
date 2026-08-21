@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\SemesterEnum;
+use App\Enums\SemesterEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;

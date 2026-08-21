@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\Enums\EventType;
-use App\Enums\Enums\SemesterEnum;
+use App\Enums\EventType;
+use App\Enums\SemesterEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

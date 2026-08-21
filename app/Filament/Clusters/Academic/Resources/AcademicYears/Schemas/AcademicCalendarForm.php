@@ -2,7 +2,7 @@
 
 namespace App\Filament\Clusters\Academic\Resources\AcademicYears\Schemas;
 
-use App\Enums\Enums\EventType;
+use App\Enums\EventType;
 use App\Models\AcademicYear;
 use App\Support\AcademicYearContext;
 use Filament\Forms\Components\ColorPicker;
