@@ -45,8 +45,8 @@ class UserForm
 
                 Select::make('role')
                     ->label('Role')
-                    ->options(RoleEnum::class)
-                    ->default(RoleEnum::USER)
+                    ->options(RoleEnum::options())
+                    ->default(RoleEnum::default())
                     ->required(),
 
                 DateTimePicker::make('email_verified_at')

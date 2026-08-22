@@ -23,6 +23,19 @@ class StudentsTable
                 TextColumn::make('user.name')
                     ->label('Nama Siswa')
                     ->searchable(),
+                TextColumn::make('tempat_lahir')
+                    ->label('Tempat Lahir')
+                    ->searchable(),
+                TextColumn::make('tanggal_lahir')
+                    ->date('d-M-Y')
+                    ->label('Tanggal Lahir')
+                    ->searchable(),
+                TextColumn::make('nama_ayah')
+                    ->label('Ayah')
+                    ->searchable(),
+                TextColumn::make('nama_ibu')
+                    ->label('Ibu')
+                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

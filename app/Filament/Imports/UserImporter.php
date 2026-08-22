@@ -2,27 +2,70 @@
 
 namespace App\Filament\Imports;
 
-use App\Enums\GolonganEnum;
-use App\Enums\PendidikanEnum;
 use App\Enums\RoleEnum;
-use App\Enums\StatusKepegawaianEnum;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
+use Filament\Forms\Components\Select;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Number;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
+/**
+ * Importer untuk mengimpor data User dari file CSV/XLSX melalui Filament.
+ *
+ * Selain membuat/memperbarui record User, importer ini juga otomatis
+ * meng-upsert profil terkait (Teacher atau Student) sesuai role yang
+ * dipilih pada form opsi import.
+ *
+ * Alur eksekusi Filament untuk setiap baris data kurang lebih:
+ * 1. getOptionsFormComponents()  -> render form opsi sebelum import jalan
+ * 2. getColumns()                -> definisi kolom & validasi per baris
+ * 3. resolveRecord()             -> cari/siapkan record User untuk baris ini
+ * 4. beforeSave()                -> hook sebelum User disimpan
+ * 5. afterCreate() / afterUpdate() -> hook setelah User disimpan (upsert profil)
+ */
 class UserImporter extends Importer
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $defaultRole = RoleEnum::USER->value;
+    /*
+    |--------------------------------------------------------------------
+    | 1. Konfigurasi Form & Kolom
+    |--------------------------------------------------------------------
+    | Bagian ini mendefinisikan tampilan form opsi import dan kolom
+    | apa saja yang dibaca dari file, beserta aturan validasinya.
+    */
 
+    /**
+     * Form opsi yang tampil di modal sebelum proses import dimulai.
+     * User memilih role (Pengguna Umum/Siswa/Guru) untuk menentukan
+     * template kolom dan tabel profil mana yang akan diisi.
+     */
+    public static function getOptionsFormComponents(): array
+    {
+        return [
+            Select::make('role')
+                ->label('Peran')
+                ->options(RoleEnum::importRoles())
+                ->default(RoleEnum::default())
+                ->required()
+                ->live()
+                ->helperText(
+                    'Gunakan template CSV sesuai jenis data yang dipilih.'
+                ),
+        ];
+    }
+
+    /**
+     * Kolom dasar akun User yang wajib ada di setiap file import,
+     * terlepas dari role yang dipilih. Kolom khusus profil (nis, nip,
+     * dll) tidak didaftarkan di sini karena ditangani secara dinamis
+     * lewat extractProfileData(), bukan lewat validasi Importer bawaan.
+     */
     public static function getColumns(): array
     {
         return [
@@ -44,110 +87,83 @@ class UserImporter extends Importer
                 ->rules(['nullable', 'min:6', 'max:255'])
                 ->example('Kosongkan untuk auto-generate'),
 
-            ImportColumn::make('role')
-                ->requiredMapping()
-                ->rules(['required', Rule::enum(RoleEnum::class)]),
-
-            // ImportColumn::make('nis')
-            //     ->rules(['nullable', 'required_if:role,student', 'string', 'max:50']),
-
-            // ImportColumn::make('nisn')
-            //     ->rules(['nullable', 'required_if:role,student', 'string', 'max:20']),
-
-            // ImportColumn::make('tempat_lahir')
-            //     ->rules(['nullable', 'string', 'max:100']),
-
-            // ImportColumn::make('tanggal_lahir')
-            //     ->rules(['nullable', 'required_if:role,student', 'date']),
-
-            // ImportColumn::make('nama_ayah')
-            //     ->rules(['nullable', 'string', 'max:150']),
-
-            // ImportColumn::make('nama_ibu')
-            //     ->rules(['nullable', 'string', 'max:150']),
-
-            // ImportColumn::make('pekerjaan_orang_tua')
-            //     ->rules(['nullable', 'string', 'max:100']),
-
-            // ImportColumn::make('alamat_orang_tua')
-            //     ->rules(['nullable', 'string', 'max:255']),
-
-            // ImportColumn::make('no_telp_orang_tua')
-            //     ->rules(['nullable', 'string', 'max:20']),
-
-            // ImportColumn::make('is_active')
-            //     ->boolean()
-            //     ->rules(['nullable', 'boolean']),
-
-            // --- Profil Guru (tabel teachers) ---
-
-            // ImportColumn::make('nip')
-            //     ->rules(['nullable', 'string', 'max:18']),
-
-            // ImportColumn::make('nuptk')
-            //     ->rules(['nullable', 'required_if:role,teacher', 'string', 'max:16']),
-
-            // ImportColumn::make('nik')
-            //     ->rules(['nullable', 'string', 'max:16']),
-
-            // ImportColumn::make('status_kepegawaian')
-            //     ->rules(['nullable', 'required_if:role,teacher', Rule::enum(StatusKepegawaianEnum::class)]),
-
-            // ImportColumn::make('bidang_studi')
-            //     ->rules(['nullable', 'required_if:role,teacher', 'string', 'max:100']),
-
-            // ImportColumn::make('golongan')
-            //     ->rules(['nullable', Rule::enum(GolonganEnum::class)]),
-
-            // ImportColumn::make('tanggal_masuk')
-            //     ->rules(['nullable', 'required_if:role,teacher', 'date']),
-
-            // ImportColumn::make('pendidikan_terakhir')
-            //     ->rules(['nullable', 'required_if:role,teacher', Rule::enum(PendidikanEnum::class)]),
-
         ];
     }
 
+    /*
+    |--------------------------------------------------------------------
+    | 2. Resolusi Record & Lifecycle Hooks User
+    |--------------------------------------------------------------------
+    | Bagian ini menentukan record User mana yang dipakai untuk baris
+    | yang sedang diproses, dan apa yang terjadi sebelum/sesudah User
+    | tersebut disimpan.
+    */
+
+    /**
+     * Menentukan record User yang akan dibuat/diperbarui untuk baris
+     * saat ini. Prioritas pencarian: username dulu (jika diisi), baru
+     * fallback ke email. withTrashed() dipakai supaya re-import tidak
+     * membuat duplikat pada user yang sudah di-soft-delete.
+     */
     public function resolveRecord(): User
     {
         $username = trim((string) ($this->data['username'] ?? ''));
 
         if ($username !== '') {
-            return User::withTrashed()->firstOrNew(['username' => $username]);
+            return User::withTrashed()->firstOrNew([
+                'username' => $username,
+                'role' => $this->options['role'],
+            ]);
         }
 
         $email = trim((string) ($this->data['email'] ?? ''));
 
-        return User::withTrashed()->firstOrNew(['email' => $email]);
+        return User::withTrashed()->firstOrNew([
+            'email' => $email,
+            'role' => $this->options['role'],
+        ]);
     }
 
+    /**
+     * Dipanggil tepat sebelum User disimpan. Jika kolom password
+     * kosong di file (baik saat create maupun update), password
+     * di-generate otomatis dari username agar akun tetap punya
+     * kredensial login yang valid.
+     */
     protected function beforeSave(): void
     {
         if (blank($this->record->password)) {
-            $this->record->password = Str::random(12);
+            $this->record->password = Hash::make($this->record->username);
         }
     }
 
-    public static function getCompletedNotificationBody(Import $import): string
-    {
-        $body = 'Your user import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
-
-        if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
-        }
-
-        return $body;
-    }
-
+    /**
+     * Dipanggil setelah User baru berhasil dibuat. Meneruskan ke
+     * createUserProfile() supaya profil Teacher/Student ikut dibuat
+     * pada baris yang sama.
+     */
     protected function afterCreate(): void
     {
         $this->createUserProfile($this->record);
     }
 
+    /**
+     * Dipanggil setelah User yang sudah ada berhasil diperbarui.
+     * Sama seperti afterCreate(), profil terkait ikut di-upsert
+     * supaya data profil tetap sinkron saat re-import.
+     */
     protected function afterUpdate(): void
     {
         $this->createUserProfile($this->record);
     }
+
+    /*
+    |--------------------------------------------------------------------
+    | 3. Upsert Profil (Teacher / Student)
+    |--------------------------------------------------------------------
+    | Bagian ini menangani pembuatan/pembaruan tabel profil tambahan
+    | (teachers/students) berdasarkan role yang dipilih di form opsi.
+    */
 
     /**
      * Dispatcher upsert profil berdasarkan role user. Dipanggil setelah
@@ -158,9 +174,9 @@ class UserImporter extends Importer
     {
         $profileData = $this->extractProfileData($this->data);
 
-        match ($this->data['role']) {
-            RoleEnum::TEACHER->value => $this->createOrUpdateGuru($user, $profileData),
-            RoleEnum::STUDENT->value => $this->createOrUpdateSiswa($user, $profileData),
+        match ($this->options['role']) {
+            RoleEnum::TEACHER => $this->createOrUpdateGuru($user, $profileData),
+            RoleEnum::STUDENT => $this->createOrUpdateSiswa($user, $profileData),
             default => null,
         };
     }
@@ -174,13 +190,13 @@ class UserImporter extends Importer
      */
     protected function extractProfileData(array $data): array
     {
-        $keys = match ($data['role'] ?? null) {
-            RoleEnum::STUDENT->value => [
+        $keys = match ($this->options['role'] ?? null) {
+            RoleEnum::STUDENT => [
                 'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir',
                 'nama_ayah', 'nama_ibu', 'pekerjaan_orang_tua',
                 'alamat_orang_tua', 'no_telp_orang_tua', 'is_active',
             ],
-            RoleEnum::TEACHER->value => [
+            RoleEnum::TEACHER => [
                 'nip', 'nuptk', 'nik', 'status_kepegawaian',
                 'bidang_studi', 'golongan', 'tanggal_masuk',
                 'pendidikan_terakhir',
@@ -224,5 +240,26 @@ class UserImporter extends Importer
         $student->fill($data);
         $student->user_id = $user->id;
         $student->save();
+    }
+
+    /*
+    |--------------------------------------------------------------------
+    | 4. Notifikasi
+    |--------------------------------------------------------------------
+    */
+
+    /**
+     * Menyusun teks notifikasi yang tampil ke user setelah proses
+     * import selesai, termasuk jumlah baris sukses dan gagal (jika ada).
+     */
+    public static function getCompletedNotificationBody(Import $import): string
+    {
+        $body = 'Your user import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
+
+        if ($failedRowsCount = $import->getFailedRowsCount()) {
+            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
+        }
+
+        return $body;
     }
 }

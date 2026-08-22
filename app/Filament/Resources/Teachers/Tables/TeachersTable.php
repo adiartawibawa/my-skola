@@ -14,6 +14,9 @@ class TeachersTable
     {
         return $table
             ->columns([
+                TextColumn::make('nik')
+                    ->label('NIK')
+                    ->searchable(),
                 TextColumn::make('user.name')
                     ->label('Nama Guru')
                     ->searchable(),
@@ -23,8 +26,15 @@ class TeachersTable
                 TextColumn::make('nuptk')
                     ->label('NUPTK')
                     ->searchable(),
-                TextColumn::make('nik')
-                    ->label('NIK')
+                TextColumn::make('status_kepegawaian')
+                    ->label('Status Kepegawaian')
+                    ->searchable(),
+                TextColumn::make('bidang_studi')
+                    ->label('Bidang Studi')
+                    ->searchable(),
+                TextColumn::make('tanggal_masuk')
+                    ->label('TMT')
+                    ->date('d-m-Y')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

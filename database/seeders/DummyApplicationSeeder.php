@@ -20,7 +20,7 @@ class DummyApplicationSeeder extends Seeder
             'name' => 'Administrator Sekolah',
             'email' => 'admin@skola.com',
             'password' => Hash::make('password'),
-            'role' => RoleEnum::ADMIN->value,
+            'role' => RoleEnum::SCHOOL_ADMIN,
         ]);
 
         // // 35 Teacher User
