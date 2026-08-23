@@ -163,6 +163,11 @@ class AcademicYear extends Model
         return $this->hasMany(AcademicCalendar::class);
     }
 
+    public function classRooms(): HasMany
+    {
+        return $this->hasMany(ClassRoom::class);
+    }
+
     // SCOPE
 
     public function scopeActive($query)

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +19,7 @@ class TeacherFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => User::factory(),
             'nip' => $this->faker->unique()->numerify('##################'), // 18 digit;
             'nuptk' => $this->faker->unique()->numerify('################'), // 16 digit;
             'nik' => $this->faker->unique()->numerify('################'), // 16 digit;

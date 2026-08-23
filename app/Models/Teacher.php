@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(
     'user_id',
@@ -40,5 +41,26 @@ class Teacher extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Riwayat lengkap penugasan wali kelas — termasuk yang sudah
+     * berakhir (ended_at terisi).
+     */
+    public function classRoomTeacherHistories(): HasMany
+    {
+        return $this->hasMany(ClassRoomTeacher::class);
+    }
+
+    /**
+     * Kelas yang saat ini diampu sebagai wali kelas (jika ada).
+     */
+    public function currentHomeroomClass(): ?ClassRoom
+    {
+        return $this->classRoomTeacherHistories()
+            ->whereNull('ended_at')
+            ->latest('started_at')
+            ->first()
+            ?->classRoom;
     }
 }

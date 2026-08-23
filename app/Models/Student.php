@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(
     'user_id',
@@ -37,5 +38,25 @@ class Student extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Riwayat lengkap keanggotaan kelas dari tahun ke tahun — termasuk
+     * yang sudah berakhir (status selain Aktif).
+     */
+    public function classRoomEnrollments(): HasMany
+    {
+        return $this->hasMany(ClassRoomStudent::class);
+    }
+
+    /**
+     * Kelas siswa pada Tahun Akademik yang sedang aktif.
+     */
+    public function currentClassRoom(): ?ClassRoom
+    {
+        return $this->classRoomEnrollments()
+            ->whereHas('academicYear', fn ($query) => $query->active())
+            ->first()
+            ?->classRoom;
     }
 }
