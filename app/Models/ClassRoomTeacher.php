@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ScopedToActiveAcademicYearViaClassRoom;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ class ClassRoomTeacher extends Model
 {
     use HasFactory;
     use HasUuids;
+    use ScopedToActiveAcademicYearViaClassRoom;
 
     protected function casts(): array
     {
@@ -77,12 +79,22 @@ class ClassRoomTeacher extends Model
         }
     }
 
+    /**
+     * Resolusi internal ini TIDAK boleh terikat scope tahun aktif, atau
+     * penugasan wali kelas untuk kelas di tahun yang sedang tidak aktif
+     * (mis. saat mengisi data historis) tidak akan pernah ketemu
+     * kelasnya sendiri.
+     */
     protected static function resolveClassRoom(ClassRoomTeacher $assignment): ClassRoom
     {
-        $classRoom = $assignment->classRoom;
+        $classRoom = $assignment->relationLoaded('classRoom')
+            ? $assignment->getRelation('classRoom')
+            : null;
 
         if (! $classRoom && $assignment->class_room_id) {
-            $classRoom = ClassRoom::query()->find($assignment->class_room_id);
+            $classRoom = ClassRoom::query()
+                ->withoutGlobalScopes()
+                ->find($assignment->class_room_id);
         }
 
         if (! $classRoom) {
@@ -125,6 +137,7 @@ class ClassRoomTeacher extends Model
         }
 
         $query = static::query()
+            ->withoutGlobalScopes()
             ->where('class_room_id', $assignment->class_room_id)
             ->whereNull('ended_at');
 
@@ -135,5 +148,6 @@ class ClassRoomTeacher extends Model
         $query->update([
             'ended_at' => $assignment->started_at->copy()->subDay(),
         ]);
+
     }
 }

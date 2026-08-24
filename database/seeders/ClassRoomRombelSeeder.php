@@ -72,7 +72,7 @@ class ClassRoomRombelSeeder extends Seeder
             ClassRoomTeacher::query()->create([
                 'class_room_id' => $classRoom->id,
                 'teacher_id' => $teacher->id,
-                'started_at' => $academicYear->start_date,
+                'started_at' => $academicYear->start_date ?? now()->startOfYear()->toDateString(),
             ]);
         }
 
@@ -83,10 +83,14 @@ class ClassRoomRombelSeeder extends Seeder
         Student::factory()
             ->count(20)
             ->create()
-            ->each(function (Student $student) use ($classRoom) {
+            ->each(function (Student $student) use ($classRoom, $academicYear) {
+
+                $joinedAt = $academicYear->start_date ?? now()->startOfYear()->toDateString();
+
                 $classRoom->classRoomStudents()->create([
                     'student_id' => $student->id,
-                    'joined_at' => $classRoom->academicYear->start_date,
+                    'academic_year_id' => $academicYear->id,
+                    'joined_at' => $joinedAt,
                     'status' => ClassRoomStudentStatusEnum::AKTIF->value,
                 ]);
             });

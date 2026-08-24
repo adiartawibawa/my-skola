@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\EventType;
 use App\Enums\SemesterEnum;
+use App\Models\Concerns\ScopedToActiveAcademicYear;
 use Guava\Calendar\Contracts\Eventable;
 use Guava\Calendar\ValueObjects\CalendarEvent;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -29,6 +30,7 @@ class AcademicCalendar extends Model implements Eventable
 {
     use HasFactory;
     use HasUuids;
+    use ScopedToActiveAcademicYear;
 
     protected function casts(): array
     {

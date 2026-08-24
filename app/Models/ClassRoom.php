@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ClassRoomStudentStatusEnum;
+use App\Models\Concerns\ScopedToActiveAcademicYear;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +26,7 @@ class ClassRoom extends Model
 {
     use HasFactory;
     use HasUuids;
+    use ScopedToActiveAcademicYear;
     use SoftDeletes;
 
     /**
@@ -175,7 +177,14 @@ class ClassRoom extends Model
      */
     protected static function validateUniqueCombination(ClassRoom $classRoom): void
     {
+        // withoutAcademicYearScope(): $classRoom->academic_year_id bisa
+        // saja BUKAN tahun aktif (mis. dibuat lewat proses kenaikan
+        // kelas untuk tahun berikutnya). Tanpa ini, scope global akan
+        // menambahkan where academic_year_id = aktif yang bentrok
+        // dengan where eksplisit di bawah, membuat pengecekan duplikat
+        // ini selalu lolos padahal belum tentu benar.
         $query = static::query()
+            ->withoutGlobalScopes()
             ->where('academic_year_id', $classRoom->academic_year_id)
             ->where('program_keahlian_id', $classRoom->program_keahlian_id)
             ->where('grade_level', $classRoom->grade_level)
@@ -190,5 +199,6 @@ class ClassRoom extends Model
                 'rombel_label' => 'Kombinasi tingkat, program keahlian, dan label rombel ini sudah ada di tahun ajaran tersebut.',
             ]);
         }
+
     }
 }

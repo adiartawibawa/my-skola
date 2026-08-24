@@ -18,9 +18,11 @@ use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class ClassRoomsTable
@@ -60,9 +62,10 @@ class ClassRoomsTable
             ])
             ->filters([
                 TrashedFilter::make(),
-                SelectFilter::make('academic_year_id')
-                    ->label('Tahun Akademik')
-                    ->relationship('academicYear', 'name'),
+                Filter::make('all_academic_years')
+                    ->label('Tampilkan Semua Tahun Akademik')
+                    ->toggle()
+                    ->query(fn (Builder $query) => $query->withoutAcademicYearScope()),
 
                 SelectFilter::make('program_keahlian_id')
                     ->label('Program Keahlian')

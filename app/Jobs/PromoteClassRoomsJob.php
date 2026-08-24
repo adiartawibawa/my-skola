@@ -40,6 +40,7 @@ class PromoteClassRoomsJob implements ShouldQueue
         $skipped = [];
 
         ClassRoom::query()
+            ->withoutGlobalScopes()
             ->whereIn('id', $this->classRoomIds)
             ->with('programKeahlian')
             ->each(function (ClassRoom $source) use ($targetAcademicYear, $resolveNextClassRoom, $promoteClassRoom, &$totalPromoted, &$skipped) {

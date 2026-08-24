@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\RoleEnum;
-use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -23,22 +22,6 @@ class DummyApplicationSeeder extends Seeder
             'role' => RoleEnum::SCHOOL_ADMIN,
         ]);
 
-        // // 35 Teacher User
-        // User::factory(35)->create([
-        //     'role' => RoleEnum::TEACHER->value,
-        // ])->each(function ($user) {
-        //     Teacher::factory()->create([
-        //         'user_id' => $user->id,
-        //     ]);
-        // });
-
-        // // 250 Student User
-        // User::factory(250)->create([
-        //     'role' => RoleEnum::STUDENT->value,
-        // ])->each(function ($user) {
-        //     Student::factory()->create([
-        //         'user_id' => $user->id,
-        //     ]);
-        // });
+        Teacher::factory(50)->create();
     }
 }

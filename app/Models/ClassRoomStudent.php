@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ClassRoomStudentStatusEnum;
+use App\Models\Concerns\ScopedToActiveAcademicYear;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,7 @@ class ClassRoomStudent extends Model
 {
     use HasFactory;
     use HasUuids;
+    use ScopedToActiveAcademicYear;
 
     protected function casts(): array
     {
@@ -66,12 +68,22 @@ class ClassRoomStudent extends Model
         });
     }
 
+    /**
+     * Query internal untuk mengetahui kelas induknya sendiri lewat
+     * class_room_id, bukan query "apa yang boleh dilihat user". Kalau
+     * ikut ter-scope, enrollment untuk kelas di tahun yang sedang tidak
+     * aktif (mis. saat seeding, atau saat proses kenaikan kelas
+     * menyentuh tahun berikutnya) akan gagal menemukan classroom-nya
+     * sendiri dan academic_year_id tidak pernah ter-set.
+     */
     protected static function resolveClassRoom(ClassRoomStudent $enrollment): ClassRoom
     {
-        $classRoom = $enrollment->classRoom;
+        $classRoom = $enrollment->relationLoaded('classRoom') ? $enrollment->getRelation('classRoom') : null;
 
         if (! $classRoom && $enrollment->class_room_id) {
-            $classRoom = ClassRoom::query()->find($enrollment->class_room_id);
+            $classRoom = ClassRoom::query()
+                ->withoutGlobalScopes()
+                ->find($enrollment->class_room_id);
         }
 
         if (! $classRoom) {
@@ -91,13 +103,25 @@ class ClassRoomStudent extends Model
      */
     protected static function syncAcademicYear(ClassRoomStudent $enrollment, ClassRoom $classRoom): void
     {
+        if (! $classRoom->academic_year_id) {
+            throw ValidationException::withMessages([
+                'class_room_id' => 'Kelas terkait tidak memiliki academic_year_id yang valid.',
+            ]);
+        }
+
         $enrollment->academic_year_id = $classRoom->academic_year_id;
+
     }
 
     protected static function defaultJoinedAt(ClassRoomStudent $enrollment, ClassRoom $classRoom): void
     {
-        if (! $enrollment->joined_at && $classRoom->academicYear) {
-            $enrollment->joined_at = $classRoom->academicYear->start_date;
+        if (! $enrollment->joined_at) {
+            // Ambil AcademicYear tanpa terhalang ActiveAcademicYearScope
+            $academicYear = $classRoom->academicYear()->withoutGlobalScopes()->first();
+
+            if ($academicYear) {
+                $enrollment->joined_at = $academicYear->start_date;
+            }
         }
     }
 

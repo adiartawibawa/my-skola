@@ -26,7 +26,10 @@ class ResolveNextClassRoomAction
             return null;
         }
 
-        return ClassRoom::query()->firstOrCreate(
+        // Target berada di Tahun Akademik BERIKUTNYA,
+        // yang biasanya belum is_active = true
+        // saat proses ini berjalan.
+        return ClassRoom::withoutGlobalScopes()->firstOrCreate(
             [
                 'academic_year_id' => $targetAcademicYear->id,
                 'program_keahlian_id' => $source->program_keahlian_id,

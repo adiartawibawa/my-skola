@@ -25,25 +25,27 @@ class PromoteClassRoomAction
         return DB::transaction(function () use ($source, $target) {
             $promoted = 0;
 
-            $source->activeStudents()->get()->each(function (ClassRoomStudent $enrollment) use ($target, &$promoted) {
-                $alreadyPromoted = ClassRoomStudent::query()
-                    ->where('student_id', $enrollment->student_id)
-                    ->where('academic_year_id', $target->academic_year_id)
-                    ->exists();
+            $source->activeStudents()->withoutGlobalScopes()->get()
+                ->each(function (ClassRoomStudent $enrollment) use ($target, &$promoted) {
+                    $alreadyPromoted = ClassRoomStudent::query()
+                        ->withoutGlobalScopes()
+                        ->where('student_id', $enrollment->student_id)
+                        ->where('academic_year_id', $target->academic_year_id)
+                        ->exists();
 
-                if ($alreadyPromoted) {
-                    return;
-                }
+                    if ($alreadyPromoted) {
+                        return;
+                    }
 
-                ClassRoomStudent::query()->create([
-                    'class_room_id' => $target->id,
-                    'student_id' => $enrollment->student_id,
-                    'joined_at' => $target->academicYear->start_date,
-                    'status' => ClassRoomStudentStatusEnum::AKTIF->value,
-                ]);
+                    ClassRoomStudent::query()->create([
+                        'class_room_id' => $target->id,
+                        'student_id' => $enrollment->student_id,
+                        'joined_at' => $target->academicYear->start_date,
+                        'status' => ClassRoomStudentStatusEnum::AKTIF->value,
+                    ]);
 
-                $promoted++;
-            });
+                    $promoted++;
+                });
 
             return $promoted;
         });
