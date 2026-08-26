@@ -140,7 +140,7 @@ class ClassRoomStudentsRelationManager extends RelationManager
                     ->modalDescription('Setiap baris akan membuat akun User + profil Siswa (jika belum ada) dan langsung mendaftarkannya ke kelas ini.')
                     ->importer(ClassRoomStudentImporter::class)
                     ->options(fn () => [
-                        'role' => RoleEnum::STUDENT->value,
+                        'role' => RoleEnum::STUDENT,
                         'class_room_id' => $this->getOwnerRecord()->getKey(),
                     ]),
 

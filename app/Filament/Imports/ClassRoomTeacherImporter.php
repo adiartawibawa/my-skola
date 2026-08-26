@@ -3,7 +3,6 @@
 namespace App\Filament\Imports;
 
 use App\Models\ClassRoom;
-use Filament\Actions\Imports\ImportColumn;
 
 /**
  * Sama seperti ClassRoomStudentImporter — extends UserImporter untuk
@@ -33,44 +32,6 @@ class ClassRoomTeacherImporter extends UserImporter
     {
         return [
             ...parent::getColumns(),
-
-            ImportColumn::make('nip')
-                ->rules(['nullable', 'string', 'max:30']),
-
-            ImportColumn::make('nuptk')
-                ->rules(['nullable', 'string', 'max:30']),
-
-            ImportColumn::make('nik')
-                ->requiredMapping()
-                ->rules(['required', 'string', 'max:16']),
-
-            ImportColumn::make('status_kepegawaian')
-                ->rules(['nullable', 'string']),
-
-            ImportColumn::make('bidang_studi')
-                ->rules(['nullable', 'string', 'max:100']),
-
-            ImportColumn::make('golongan')
-                ->rules(['nullable', 'string']),
-
-            ImportColumn::make('tanggal_masuk')
-                ->rules(['nullable', 'date']),
-
-            ImportColumn::make('pendidikan_terakhir')
-                ->rules(['nullable', 'string']),
-
-            ImportColumn::make('started_at')
-                ->label('Mulai Menjabat')
-                ->requiredMapping()
-                ->rules(['required', 'date']),
-
-            ImportColumn::make('ended_at')
-                ->label('Selesai Menjabat')
-                ->rules(['nullable', 'date']),
-
-            ImportColumn::make('reason')
-                ->label('Alasan')
-                ->rules(['nullable', 'string', 'max:255']),
         ];
     }
 

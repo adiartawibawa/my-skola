@@ -142,7 +142,7 @@ class Post extends Model
         return true;
     }
 
-    public function isLikedBy(?int $userId, ?string $sessionId): bool
+    public function isLikedBy(?string $userId, ?string $sessionId): bool
     {
         return $userId
             ? $this->likes()->where('user_id', $userId)->exists()

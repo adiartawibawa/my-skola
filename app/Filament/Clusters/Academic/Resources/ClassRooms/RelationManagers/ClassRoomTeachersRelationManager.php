@@ -111,7 +111,7 @@ class ClassRoomTeachersRelationManager extends RelationManager
                     ->modalDescription('Setiap baris membuat akun User + profil Guru (jika belum ada) dan satu entri penugasan wali kelas. Urutkan baris dari yang paling lama ke paling baru kalau mengisi beberapa periode sekaligus.')
                     ->importer(ClassRoomTeacherImporter::class)
                     ->options(fn () => [
-                        'role' => RoleEnum::TEACHER->value,
+                        'role' => RoleEnum::TEACHER,
                         'class_room_id' => $this->getOwnerRecord()->getKey(),
                     ]),
 

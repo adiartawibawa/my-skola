@@ -4,7 +4,6 @@ namespace App\Filament\Imports;
 
 use App\Enums\ClassRoomStudentStatusEnum;
 use App\Models\ClassRoom;
-use Filament\Actions\Imports\ImportColumn;
 
 /**
  * Extends UserImporter — semua logika akun (resolveRecord, auto-
@@ -32,35 +31,6 @@ class ClassRoomStudentImporter extends UserImporter
     {
         return [
             ...parent::getColumns(),
-
-            ImportColumn::make('nis')
-                ->requiredMapping()
-                ->rules(['required', 'string', 'max:30']),
-
-            ImportColumn::make('nisn')
-                ->requiredMapping()
-                ->rules(['required', 'string', 'max:30']),
-
-            ImportColumn::make('tempat_lahir')
-                ->rules(['nullable', 'string', 'max:100']),
-
-            ImportColumn::make('tanggal_lahir')
-                ->rules(['nullable', 'date']),
-
-            ImportColumn::make('nama_ayah')
-                ->rules(['nullable', 'string', 'max:150']),
-
-            ImportColumn::make('nama_ibu')
-                ->rules(['nullable', 'string', 'max:150']),
-
-            ImportColumn::make('pekerjaan_orang_tua')
-                ->rules(['nullable', 'string', 'max:150']),
-
-            ImportColumn::make('alamat_orang_tua')
-                ->rules(['nullable', 'string']),
-
-            ImportColumn::make('no_telp_orang_tua')
-                ->rules(['nullable', 'string', 'max:20']),
         ];
     }
 
