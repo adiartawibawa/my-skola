@@ -3,12 +3,17 @@
 namespace App\Filament\Clusters\Academic\Resources\ClassRooms\RelationManagers;
 
 use App\Enums\ClassRoomStudentStatusEnum;
+use App\Enums\RoleEnum;
+use App\Filament\Concerns\GeneratesImportCsvTemplate;
+use App\Filament\Imports\ClassRoomStudentImporter;
 use App\Models\Student;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ImportAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -17,9 +22,12 @@ use Filament\Support\Enums\Operation;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ClassRoomStudentsRelationManager extends RelationManager
 {
+    use GeneratesImportCsvTemplate;
+
     protected static string $relationship = 'classRoomStudents';
 
     protected static ?string $title = 'Daftar Siswa';
@@ -121,6 +129,27 @@ class ClassRoomStudentsRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->modalHeading('Tambah Siswa ke Kelas'),
+
+                ImportAction::make()
+                    ->label('Import Siswa')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('gray')
+                    ->maxRows(500)
+                    ->chunkSize(100)
+                    ->modalHeading('Import Siswa ke Kelas Ini')
+                    ->modalDescription('Setiap baris akan membuat akun User + profil Siswa (jika belum ada) dan langsung mendaftarkannya ke kelas ini.')
+                    ->importer(ClassRoomStudentImporter::class)
+                    ->options(fn () => [
+                        'role' => RoleEnum::STUDENT->value,
+                        'class_room_id' => $this->getOwnerRecord()->getKey(),
+                    ]),
+
+                Action::make('downloadStudentImportTemplate')
+                    ->label('Template Import')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->action(fn () => $this->downloadStudentTemplate()),
+
             ])
             ->recordActions([
                 EditAction::make()
@@ -132,5 +161,54 @@ class ClassRoomStudentsRelationManager extends RelationManager
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * Format kolom SENGAJA tidak punya 'role' atau 'kelas' — keduanya
+     * sudah pasti dari konteks halaman (RelationManager ini cuma
+     * dipasang untuk Siswa, di kelas yang sedang dibuka), bukan dari
+     * isi file. Urutan kolom harus sama persis dengan
+     * ClassRoomStudentImporter::getColumns().
+     */
+    protected function downloadStudentTemplate(): StreamedResponse
+    {
+        $headers = [
+            'username', 'name', 'email', 'password',
+            'nis', 'nisn', 'tempat_lahir', 'tanggal_lahir',
+            'nama_ayah', 'nama_ibu', 'pekerjaan_orang_tua',
+            'alamat_orang_tua', 'no_telp_orang_tua',
+        ];
+
+        $example = [
+            '',                              // username (opsional, fallback ke email)
+            'I Putu Gede Arnold Saputra',
+            'arnold.siswa@mail.com',
+            '',                              // password (kosong = auto-generate)
+            '2026001',                       // nis
+            '1234567890',                    // nisn
+            'Jakarta',
+            '2010-05-15',
+            'I Wayan Sucipta',
+            'Ni Luh Astuti',
+            'Wiraswasta',
+            'Jl. Merdeka No. 123, Singasana',
+            '081234567890',
+        ];
+
+        $instructions = [
+            'Username boleh dikosongkan — sistem akan mencocokkan berdasarkan email sebagai gantinya',
+            'NIS dan NISN harus unik dan wajib diisi',
+            'Siswa yang sudah terdaftar di kelas manapun pada Tahun Akademik ini akan dilewati otomatis, bukan error',
+        ];
+
+        $classRoomName = $this->getOwnerRecord()->full_name ?? 'kelas';
+        $timestamp = now()->format('Ymd_His');
+
+        return $this->streamCsvTemplate(
+            $headers,
+            $example,
+            "template_import_siswa_{$classRoomName}_{$timestamp}.csv",
+            $instructions,
+        );
     }
 }

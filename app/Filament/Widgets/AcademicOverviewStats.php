@@ -15,6 +15,8 @@ class AcademicOverviewStats extends StatsOverviewWidget
 {
     use InteractsWithPageFilters;
 
+    protected int|string|array $columnSpan = 'full';
+
     protected function getStats(): array
     {
         $academicYear = AcademicYearContext::get();
