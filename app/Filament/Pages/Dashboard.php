@@ -4,15 +4,19 @@ namespace App\Filament\Pages;
 
 use App\Models\AcademicYear;
 use App\Support\AcademicYearContext;
+use BackedEnum;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 
 class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
 
     /**
      * AcademicYearContext (app/Support/AcademicYearContext.php) adalah
@@ -42,7 +46,12 @@ class Dashboard extends BaseDashboard
                                 ->orderByDesc('start_date')
                                 ->pluck('name', 'id'))
                             ->default(fn () => AcademicYearContext::get()?->id)
-                            ->selectablePlaceholder(false)
+                            ->selectablePlaceholder(fn () => ! AcademicYear::query()->exists())
+                            ->placeholder('Belum ada Tahun Akademik')
+                            ->disabled(fn () => ! AcademicYear::query()->exists())
+                            ->helperText(fn () => AcademicYear::query()->exists()
+                                ? null
+                                : 'Buat Tahun Akademik terlebih dahulu di menu Academic sebelum widget di bawah bisa menampilkan data.')
                             ->searchable()
                             ->live()
                             ->afterStateUpdated(function (?string $state): void {
@@ -55,5 +64,20 @@ class Dashboard extends BaseDashboard
                     ])
                     ->columns(1),
             ]);
+    }
+
+    /**
+     * Sembunyikan semua widget kalau belum ada Tahun Akademik sama
+     * sekali — daripada masing-masing widget menampilkan state error/
+     * kosong yang membingungkan, halaman cukup menampilkan filter
+     * (dengan helper text di atas) tanpa widget di bawahnya.
+     */
+    public function getWidgets(): array
+    {
+        if (! AcademicYear::query()->exists()) {
+            return [];
+        }
+
+        return parent::getWidgets();
     }
 }

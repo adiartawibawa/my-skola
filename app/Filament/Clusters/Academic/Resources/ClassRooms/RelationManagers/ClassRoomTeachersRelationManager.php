@@ -13,7 +13,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -80,12 +79,6 @@ class ClassRoomTeachersRelationManager extends RelationManager
                     ->date('d M Y')
                     ->placeholder('Masih menjabat')
                     ->sortable(),
-
-                IconColumn::make('ended_at')
-                    ->label('Aktif')
-                    ->boolean(fn ($state) => $state === null)
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-clock'),
 
                 TextColumn::make('reason')
                     ->label('Alasan')

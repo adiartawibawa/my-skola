@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\RoleEnum;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,7 +20,9 @@ class StudentFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => User::factory([
+                'role' => RoleEnum::STUDENT,
+            ]),
             'nis' => $this->faker->unique()->numerify('#####'), // 5 digit
             'nisn' => $this->faker->unique()->numerify('##########'), // 10 digit
         ];
