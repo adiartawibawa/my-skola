@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Teachers;
 use App\Filament\Resources\Teachers\Pages\CreateTeacher;
 use App\Filament\Resources\Teachers\Pages\EditTeacher;
 use App\Filament\Resources\Teachers\Pages\ListTeachers;
+use App\Filament\Resources\Teachers\RelationManagers\ClassRoomTeacherHistoriesRelationManager;
 use App\Filament\Resources\Teachers\Schemas\TeacherForm;
 use App\Filament\Resources\Teachers\Tables\TeachersTable;
 use App\Models\Teacher;
@@ -21,7 +22,7 @@ class TeacherResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static ?string $recordTitleAttribute = 'nik';
+    protected static ?string $recordTitleAttribute = 'name';
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
@@ -38,7 +39,7 @@ class TeacherResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ClassRoomTeacherHistoriesRelationManager::class,
         ];
     }
 

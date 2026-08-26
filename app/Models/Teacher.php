@@ -6,6 +6,7 @@ use App\Enums\GolonganEnum;
 use App\Enums\PendidikanEnum;
 use App\Enums\StatusKepegawaianEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -62,5 +63,15 @@ class Teacher extends Model
             ->latest('started_at')
             ->first()
             ?->classRoom;
+    }
+
+    /**
+     * Accessor untuk mengambil atribut 'name' dari relasi User
+     */
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->user?->name
+        );
     }
 }

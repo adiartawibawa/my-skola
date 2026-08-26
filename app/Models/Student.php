@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -58,5 +59,12 @@ class Student extends Model
             ->whereHas('academicYear', fn ($query) => $query->active())
             ->first()
             ?->classRoom;
+    }
+
+    protected function nisnName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->nisn.' - '.$this->user?->name,
+        );
     }
 }

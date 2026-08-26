@@ -112,10 +112,17 @@ class ClassRoom extends Model
 
     /**
      * Wali kelas yang sedang menjabat (ended_at masih null).
+     *
+     * withoutGlobalScopes(): method ini dipanggil pada SATU instance
+     * ClassRoom yang sudah spesifik (lewat class_room_id) — scope tahun
+     * aktif milik ClassRoomTeacher tidak relevan dan justru salah di
+     * sini kalau $this bukan kelas dari tahun aktif (mis. saat melihat
+     * kelas historis lewat toggle "Tampilkan Semua Tahun Akademik").
      */
     public function currentHomeroomTeacher(): ?Teacher
     {
         return $this->classRoomTeachers()
+            ->withoutGlobalScopes()
             ->whereNull('ended_at')
             ->latest('started_at')
             ->first()
@@ -124,10 +131,14 @@ class ClassRoom extends Model
 
     /**
      * Siswa dengan status Aktif di kelas ini.
+     *
+     * withoutGlobalScopes(): sama alasannya seperti
+     * currentHomeroomTeacher() di atas — relevan untuk kelas historis.
      */
     public function activeStudents(): HasMany
     {
         return $this->classRoomStudents()
+            ->withoutGlobalScopes()
             ->where('status', ClassRoomStudentStatusEnum::AKTIF);
     }
 
@@ -199,6 +210,5 @@ class ClassRoom extends Model
                 'rombel_label' => 'Kombinasi tingkat, program keahlian, dan label rombel ini sudah ada di tahun ajaran tersebut.',
             ]);
         }
-
     }
 }

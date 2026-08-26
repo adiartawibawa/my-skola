@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Students;
 use App\Filament\Resources\Students\Pages\CreateStudent;
 use App\Filament\Resources\Students\Pages\EditStudent;
 use App\Filament\Resources\Students\Pages\ListStudents;
+use App\Filament\Resources\Students\RelationManagers\ClassRoomEnrollmentsRelationManager;
 use App\Filament\Resources\Students\Schemas\StudentForm;
 use App\Filament\Resources\Students\Tables\StudentsTable;
 use App\Models\Student;
@@ -21,7 +22,7 @@ class StudentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
 
-    protected static ?string $recordTitleAttribute = 'nisn';
+    protected static ?string $recordTitleAttribute = 'nisn_name';
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
@@ -38,7 +39,7 @@ class StudentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ClassRoomEnrollmentsRelationManager::class,
         ];
     }
 

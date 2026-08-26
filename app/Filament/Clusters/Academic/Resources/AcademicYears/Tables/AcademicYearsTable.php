@@ -7,6 +7,8 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
@@ -61,6 +63,26 @@ class AcademicYearsTable
 
                 EditAction::make()
                     ->iconButton(),
+
+                Action::make('activating')
+                    ->label('Jadikan Tahun Aktif')
+                    ->icon(Heroicon::OutlinedFire)
+                    ->iconButton()
+                    ->visible(fn (AcademicYear $record) => ! $record->is_active)
+                    ->requiresConfirmation()
+                    ->modalHeading('Jadikan Tahun Akademik Ini Aktif?')
+                    ->modalDescription('Tahun Akademik yang saat ini aktif akan otomatis dinonaktifkan — hanya boleh ada satu yang aktif.')
+                    ->action(function (AcademicYear $record): void {
+                        $record->is_active = true;
+                        $record->save();
+
+                        Notification::make()
+                            ->title('Tahun Akademik diaktifkan')
+                            ->body("{$record->name} sekarang menjadi Tahun Akademik aktif.")
+                            ->success()
+                            ->send();
+                    }),
+
             ], position: RecordActionsPosition::BeforeColumns)
             ->toolbarActions([
                 BulkActionGroup::make([
