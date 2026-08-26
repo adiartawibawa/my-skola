@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DummyApplicationSeeder::class,
             ClassRoomRombelSeeder::class,
+            BlogSeeder::class,
         ]);
     }
 }

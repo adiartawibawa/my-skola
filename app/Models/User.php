@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -74,5 +75,40 @@ class User extends Authenticatable
     public function student(): HasOne
     {
         return $this->hasOne(Student::class);
+    }
+
+    /**
+     * Blogging System
+     */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function capabilities(): BelongsToMany
+    {
+        return $this->belongsToMany(Capability::class)->withTimestamps();
+    }
+
+    public function hasCapability(string $key): bool
+    {
+        return $this->relationLoaded('capabilities')
+            ? $this->capabilities->contains('key', $key)
+            : $this->capabilities()->where('key', $key)->exists();
+    }
+
+    public function canWriteBlog(): bool
+    {
+        return $this->hasCapability('blog.write') || $this->hasCapability('blog.editor');
+    }
+
+    public function canEditBlog(): bool
+    {
+        return $this->hasCapability('blog.editor');
     }
 }
