@@ -74,6 +74,11 @@ class ClassRoom extends Model
         return $this->hasMany(ClassRoomStudent::class);
     }
 
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
     /**
      * Scopes
      */

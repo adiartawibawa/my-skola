@@ -6,16 +6,17 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(
     'code',
     'name',
-    'duration_years',
-    'is_active',
+    'program_keahlian_id',
     'description',
+    'is_active',
 )]
-class ProgramKeahlian extends Model
+class Subject extends Model
 {
     use HasFactory;
     use HasUuids;
@@ -23,7 +24,6 @@ class ProgramKeahlian extends Model
     protected function casts(): array
     {
         return [
-            'duration_years' => 'integer',
             'is_active' => 'boolean',
         ];
     }
@@ -31,14 +31,14 @@ class ProgramKeahlian extends Model
     /**
      * Relations
      */
-    public function classRooms(): HasMany
+    public function programKeahlian(): BelongsTo
     {
-        return $this->hasMany(ClassRoom::class);
+        return $this->belongsTo(ProgramKeahlian::class);
     }
 
-    public function subjects(): HasMany
+    public function schedules(): HasMany
     {
-        return $this->hasMany(Subject::class);
+        return $this->hasMany(Schedule::class);
     }
 
     /**
@@ -47,5 +47,14 @@ class ProgramKeahlian extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Mapel umum (program_keahlian_id null) berlaku untuk semua kelas;
+     * mapel kejuruan hanya untuk kelas di program keahlian tersebut.
+     */
+    public function isGeneral(): bool
+    {
+        return $this->program_keahlian_id === null;
     }
 }

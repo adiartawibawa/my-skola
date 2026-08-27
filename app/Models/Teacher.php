@@ -74,4 +74,9 @@ class Teacher extends Model
             get: fn () => $this->user?->name
         );
     }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }
