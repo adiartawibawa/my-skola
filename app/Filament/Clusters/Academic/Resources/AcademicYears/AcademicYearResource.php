@@ -31,6 +31,8 @@ class AcademicYearResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Tahun Akademik';
 
+    protected static ?int $navigationSort = 1;
+
     public static function form(Schema $schema): Schema
     {
         return AcademicYearForm::configure($schema);

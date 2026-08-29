@@ -29,6 +29,8 @@ class ScheduleResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Jadwal Pelajaran';
 
+    protected static ?int $navigationSort = 5;
+
     public static function form(Schema $schema): Schema
     {
         return ScheduleForm::configure($schema);

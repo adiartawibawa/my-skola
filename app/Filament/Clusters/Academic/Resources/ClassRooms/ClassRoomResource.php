@@ -33,6 +33,8 @@ class ClassRoomResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Kelas / Rombel';
 
+    protected static ?int $navigationSort = 3;
+
     public static function form(Schema $schema): Schema
     {
         return ClassRoomForm::configure($schema);
