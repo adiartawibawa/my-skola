@@ -14,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Validation\ValidationException;
 
 class AcademicYearsTable
 {
@@ -73,8 +74,18 @@ class AcademicYearsTable
                     ->modalHeading('Jadikan Tahun Akademik Ini Aktif?')
                     ->modalDescription('Tahun Akademik yang saat ini aktif akan otomatis dinonaktifkan — hanya boleh ada satu yang aktif.')
                     ->action(function (AcademicYear $record): void {
-                        $record->is_active = true;
-                        $record->save();
+                        try {
+                            $record->is_active = true;
+                            $record->save();
+                        } catch (ValidationException $e) {
+                            Notification::make()
+                                ->title('Gagal mengaktifkan Tahun Akademik')
+                                ->body(collect($e->errors())->flatten()->implode(' '))
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
 
                         Notification::make()
                             ->title('Tahun Akademik diaktifkan')
@@ -82,7 +93,6 @@ class AcademicYearsTable
                             ->success()
                             ->send();
                     }),
-
             ], position: RecordActionsPosition::BeforeColumns)
             ->toolbarActions([
                 BulkActionGroup::make([

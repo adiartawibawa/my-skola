@@ -24,6 +24,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class ClassRoomsTable
 {
@@ -93,7 +94,17 @@ class ClassRoomsTable
                     ->modalHeading('Luluskan Siswa di Kelas Ini?')
                     ->modalDescription('Semua siswa Aktif di kelas ini akan ditandai Lulus. Aksi ini tidak membuat baris kelas baru — hanya menutup periode keanggotaan siswa di kelas ini.')
                     ->action(function (ClassRoom $record, GraduateClassRoomAction $graduate) {
-                        $graduated = $graduate->execute($record);
+                        try {
+                            $graduated = $graduate->execute($record);
+                        } catch (ValidationException $e) {
+                            Notification::make()
+                                ->title('Gagal meluluskan siswa')
+                                ->body(collect($e->errors())->flatten()->implode(' '))
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
 
                         Notification::make()
                             ->title('Siswa berhasil diluluskan')
