@@ -77,6 +77,6 @@ class PostIndex extends Component
             'posts' => $posts,
             'categories' => Category::withCount('posts')->orderBy('name')->get(),
             'tags' => Tag::withCount('posts')->orderByDesc('posts_count')->limit(15)->get(),
-        ])->layout('layouts.blog');
+        ])->layout('components.layouts.blog');
     }
 }

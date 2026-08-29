@@ -114,7 +114,7 @@ class PostShow extends Component
         return view('livewire.blog.post-show', [
             'comments' => $comments,
             'relatedPosts' => $relatedPosts,
-        ])->layout('layouts.blog', [
+        ])->layout('components.layouts.blog', [
             'title' => $this->post->meta_title ?: $this->post->title,
             'description' => $this->post->meta_description ?: $this->post->excerpt,
             'ogImage' => $this->post->og_image ?: $this->post->featured_image,
