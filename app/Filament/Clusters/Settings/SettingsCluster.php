@@ -14,4 +14,6 @@ class SettingsCluster extends Cluster
     protected static string|UnitEnum|null $navigationGroup = 'Sistem';
 
     protected static ?string $navigationLabel = 'Pengaturan Situs';
+
+    protected static ?int $navigationSort = 4;
 }

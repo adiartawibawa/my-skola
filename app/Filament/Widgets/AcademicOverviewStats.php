@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\ClassRoomStudentStatusEnum;
+use App\Enums\RoleEnum;
 use App\Models\ClassRoom;
 use App\Models\ClassRoomStudent;
 use App\Models\ProgramKeahlian;
@@ -10,12 +11,23 @@ use App\Support\AcademicYearContext;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Livewire\Attributes\On;
 
 class AcademicOverviewStats extends StatsOverviewWidget
 {
     use InteractsWithPageFilters;
 
     protected int|string|array $columnSpan = 'full';
+
+    /**
+     * Kontrol akses berbasis role: widget dashboard ini berisi
+     * statistik lintas sekolah — bukan konsumsi Guru yang aksesnya
+     * sengaja dibatasi hanya ke kelas/jadwal miliknya sendiri.
+     */
+    public static function canView(): bool
+    {
+        return auth()->user()?->role !== RoleEnum::TEACHER;
+    }
 
     protected function getStats(): array
     {
@@ -74,5 +86,19 @@ class AcademicOverviewStats extends StatsOverviewWidget
                 ->icon('heroicon-o-briefcase'),
         ];
 
+    }
+
+    /**
+     * Dipicu Dashboard saat Tahun Akademik yang dilihat berganti (lihat
+     * Dashboard::filtersForm()) — pola yang sama dengan
+     * AcademicCalendarWidget::onAcademicYearContextChanged(). Method
+     * kosong ini cukup untuk memaksa Livewire re-render widget, karena
+     * getStats() selalu membaca AcademicYearContext::get() secara
+     * fresh setiap render.
+     */
+    #[On('academic-year-context-changed')]
+    public function onAcademicYearContextChanged(): void
+    {
+        //
     }
 }

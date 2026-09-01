@@ -59,7 +59,8 @@ class CommentsRelationManager extends RelationManager
                 Action::make('approve')
                     ->icon('heroicon-o-check')
                     ->color('success')
-                    ->visible(fn ($record) => $record->status !== CommentStatus::APPROVED)
+                    ->visible(fn ($record) => $record->status !== CommentStatus::APPROVED
+                        && auth()->user()->can('approve', $record))
                     ->action(function ($record) {
                         $record->update(['status' => CommentStatus::APPROVED]);
                         Notification::make()->title('Komentar disetujui.')->success()->send();
@@ -68,7 +69,8 @@ class CommentsRelationManager extends RelationManager
                 Action::make('reject')
                     ->icon('heroicon-o-x-mark')
                     ->color('danger')
-                    ->visible(fn ($record) => $record->status !== CommentStatus::REJECTED)
+                    ->visible(fn ($record) => $record->status !== CommentStatus::REJECTED
+                        && auth()->user()->can('reject', $record))
                     ->action(function ($record) {
                         $record->update(['status' => CommentStatus::REJECTED]);
                         Notification::make()->title('Komentar ditolak.')->warning()->send();

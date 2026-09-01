@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters\Academic\Resources\Schedules;
 
+use App\Enums\RoleEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
 use App\Filament\Clusters\Academic\Resources\Schedules\Pages\CreateSchedule;
 use App\Filament\Clusters\Academic\Resources\Schedules\Pages\EditSchedule;
@@ -14,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ScheduleResource extends Resource
 {
@@ -30,6 +32,23 @@ class ScheduleResource extends Resource
     protected static ?string $pluralModelLabel = 'Jadwal Pelajaran';
 
     protected static ?int $navigationSort = 5;
+
+    /**
+     * Guru hanya boleh melihat jadwal
+     * mengajarnya sendiri (teacher_id miliknya).
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = auth()->user();
+
+        if ($user?->role === RoleEnum::TEACHER) {
+            $query->where('teacher_id', $user->teacher?->id);
+        }
+
+        return $query;
+    }
 
     public static function form(Schema $schema): Schema
     {

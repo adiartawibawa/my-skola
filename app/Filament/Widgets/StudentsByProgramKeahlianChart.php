@@ -3,11 +3,13 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\ClassRoomStudentStatusEnum;
+use App\Enums\RoleEnum;
 use App\Models\ClassRoomStudent;
 use App\Models\ProgramKeahlian;
 use App\Support\AcademicYearContext;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
+use Livewire\Attributes\On;
 
 class StudentsByProgramKeahlianChart extends ChartWidget
 {
@@ -16,6 +18,11 @@ class StudentsByProgramKeahlianChart extends ChartWidget
     protected ?string $heading = 'Siswa Aktif per Program Keahlian';
 
     protected int|string|array $columnSpan = 'full';
+
+    public static function canView(): bool
+    {
+        return auth()->user()?->role !== RoleEnum::TEACHER;
+    }
 
     protected function getData(): array
     {
@@ -56,5 +63,14 @@ class StudentsByProgramKeahlianChart extends ChartWidget
     protected function getType(): string
     {
         return 'bar';
+    }
+
+    /**
+     * Sama seperti AcademicOverviewStats — lihat komentar di sana.
+     */
+    #[On('academic-year-context-changed')]
+    public function onAcademicYearContextChanged(): void
+    {
+        //
     }
 }

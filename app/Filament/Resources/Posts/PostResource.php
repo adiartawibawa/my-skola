@@ -30,6 +30,16 @@ class PostResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
+    /**
+     * PostPolicy::viewAny() sengaja publik (dipakai halaman blog publik).
+     * Di panel admin, nav "Blog" hanya perlu tampil untuk yang benar-benar
+     * punya kemampuan menulis/mengedit — jadi dicek terpisah di sini.
+     */
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->canWriteBlog() ?? false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PostForm::configure($schema);

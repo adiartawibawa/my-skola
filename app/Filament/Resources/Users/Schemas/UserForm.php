@@ -3,9 +3,13 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use App\Enums\RoleEnum;
+use App\Models\Capability;
+use App\Models\User;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class UserForm
@@ -52,6 +56,21 @@ class UserForm
                 DateTimePicker::make('email_verified_at')
                     ->label('Email Verified At')
                     ->nullable(),
+
+                Section::make('Capability')
+                    ->columnSpanFull()
+                    ->components([
+                        CheckboxList::make('capabilities')
+                            ->relationship('capabilities', 'name')
+                            ->descriptions(fn () => Capability::query()->pluck('description', 'id')->toArray())
+                            ->columns(2)
+                            ->bulkToggleable()
+                            ->disabled(fn (?User $record) => ! auth()->user()->can('assignCapabilities', $record ?? User::class))
+                            ->dehydrated(fn (?User $record) => auth()->user()->can('assignCapabilities', $record ?? User::class))
+                            ->helperText(fn (?User $record) => auth()->user()->can('assignCapabilities', $record ?? User::class)
+                                ? 'Kemampuan tambahan lintas role — tidak terikat pada role akademis di atas.'
+                                : 'Hanya Super Admin/Admin Sekolah yang dapat mengubah capability. Tata Usaha dapat melihat, tidak dapat mengubah.'),
+                    ]),
             ]);
     }
 }

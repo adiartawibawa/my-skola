@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\RoleEnum;
 use App\Filament\Clusters\Academic\Resources\ClassRooms\ClassRoomResource;
 use App\Models\ClassRoom;
 use App\Support\AcademicYearContext;
@@ -16,6 +17,11 @@ class ClassRoomsWithoutHomeroomWidget extends BaseWidget
     protected static ?string $heading = 'Kelas Tanpa Wali Kelas';
 
     protected int|string|array $columnSpan = 'full';
+
+    public static function canView(): bool
+    {
+        return auth()->user()?->role !== RoleEnum::TEACHER;
+    }
 
     public function table(Table $table): Table
     {

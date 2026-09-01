@@ -24,6 +24,10 @@ class UserInfolist
                     ->placeholder('-'),
                 TextEntry::make('role')
                     ->badge(),
+                TextEntry::make('capabilities.name')
+                    ->label('Capability')
+                    ->badge()
+                    ->placeholder('-'),
                 TextEntry::make('created_at')
                     ->dateTime()
                     ->placeholder('-'),

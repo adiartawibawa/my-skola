@@ -44,6 +44,31 @@ class PostPolicy
         return $user->canEditBlog() || $user->id === $post->user_id;
     }
 
+    public function deleteAny(User $user): bool
+    {
+        return $user->canEditBlog();
+    }
+
+    public function restore(User $user, Post $post): bool
+    {
+        return $user->canEditBlog();
+    }
+
+    public function restoreAny(User $user): bool
+    {
+        return $user->canEditBlog();
+    }
+
+    public function forceDelete(User $user, Post $post): bool
+    {
+        return $user->canEditBlog();
+    }
+
+    public function forceDeleteAny(User $user): bool
+    {
+        return $user->canEditBlog();
+    }
+
     public function submitForReview(User $user, Post $post): bool
     {
         return $user->id === $post->user_id && $post->status === PostStatus::DRAFT;

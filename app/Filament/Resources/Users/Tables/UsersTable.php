@@ -30,6 +30,11 @@ class UsersTable
                     ->sortable(),
                 TextColumn::make('role')
                     ->badge(),
+                TextColumn::make('capabilities.name')
+                    ->label('Capability')
+                    ->badge()
+                    ->separator(',')
+                    ->toggleable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

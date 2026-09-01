@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters\Academic\Resources\ClassRooms;
 
+use App\Enums\RoleEnum;
 use App\Filament\Clusters\Academic\AcademicCluster;
 use App\Filament\Clusters\Academic\Resources\ClassRooms\Pages\CreateClassRoom;
 use App\Filament\Clusters\Academic\Resources\ClassRooms\Pages\EditClassRoom;
@@ -34,6 +35,33 @@ class ClassRoomResource extends Resource
     protected static ?string $pluralModelLabel = 'Kelas / Rombel';
 
     protected static ?int $navigationSort = 3;
+
+    /**
+     * Kontrol akses berbasis role — bagian pembatas BARIS, bukan
+     * boleh/tidaknya (itu tugas ClassRoomPolicy). Guru hanya boleh
+     * melihat kelas yang JADI wali kelasnya sendiri saat ini; role
+     * lain (Admin/Kepala Sekolah/Tata Usaha, sudah difilter lolos
+     * lewat Gate::before()/Policy) melihat semua seperti biasa.
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = auth()->user();
+
+        if ($user?->role === RoleEnum::TEACHER) {
+            $teacherId = $user->teacher?->id;
+
+            $query->whereHas(
+                'classRoomTeachers',
+                fn ($q) => $q->withoutGlobalScopes()
+                    ->where('teacher_id', $teacherId)
+                    ->whereNull('ended_at'),
+            );
+        }
+
+        return $query;
+    }
 
     public static function form(Schema $schema): Schema
     {
