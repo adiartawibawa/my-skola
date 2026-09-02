@@ -61,6 +61,37 @@ class Student extends Model
             ?->classRoom;
     }
 
+    /**
+     * Program Keahlian siswa ini — dari kelas yang sedang aktif kalau
+     * masih terdaftar, atau dari kelas TERAKHIR di riwayat kalau sudah
+     * tidak aktif lagi (lulus/keluar/pindah). Sengaja BUKAN kolom
+     * tersimpan — selalu diturunkan dari ClassRoom yang pernah/sedang
+     * dia ikuti, supaya tidak ada dua sumber kebenaran yang bisa tidak
+     * sinkron dengan riwayat kelas sebenarnya.
+     */
+    public function programKeahlian(): ?ProgramKeahlian
+    {
+        $classRoomId = $this->currentClassRoom()?->id;
+
+        if (! $classRoomId) {
+            // withoutGlobalScopes(): siswa yang sudah tidak aktif
+            // (lulus/keluar/pindah) tidak akan ketemu lewat
+            // currentClassRoom() — cari kelas TERAKHIR yang pernah dia
+            // ikuti dari riwayat, lintas Tahun Akademik.
+            $classRoomId = $this->classRoomEnrollments()
+                ->withoutGlobalScopes()
+                ->orderByDesc('joined_at')
+                ->first()
+                ?->class_room_id;
+        }
+
+        if (! $classRoomId) {
+            return null;
+        }
+
+        return ClassRoom::query()->withoutGlobalScopes()->find($classRoomId)?->programKeahlian;
+    }
+
     protected function nisnName(): Attribute
     {
         return Attribute::make(
