@@ -12,14 +12,15 @@ class ClassRoomStudentPolicy extends AdminStaffManagedPolicy
         return in_array($user->role, [RoleEnum::ADMIN_STAFF, RoleEnum::TEACHER], true);
     }
 
-    public function view(User $user, $record): bool
+    public function view(User $user, $classRoomStudent): bool
     {
         if ($user->role === RoleEnum::ADMIN_STAFF) {
             return true;
         }
 
         if ($user->role === RoleEnum::TEACHER) {
-            return $record->classRoom?->currentHomeroomTeacher()?->user_id === $user->id;
+            return $classRoomStudent->classRoom?->currentHomeroomTeacher()?->user_id === $user->id
+                || $user->teacher?->isHeadOfProgramKeahlian($classRoomStudent->classRoom?->program_keahlian_id);
         }
 
         return false;

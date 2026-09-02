@@ -51,13 +51,20 @@ class ClassRoomResource extends Resource
 
         if ($user?->role === RoleEnum::TEACHER) {
             $teacherId = $user->teacher?->id;
+            $headProgramKeahlianId = $user->teacher?->currentHeadOfProgramKeahlian()?->id;
 
-            $query->whereHas(
-                'classRoomTeachers',
-                fn ($q) => $q->withoutGlobalScopes()
-                    ->where('teacher_id', $teacherId)
-                    ->whereNull('ended_at'),
-            );
+            $query->where(function (Builder $q) use ($teacherId, $headProgramKeahlianId) {
+                $q->whereHas(
+                    'classRoomTeachers',
+                    fn ($rq) => $rq->withoutGlobalScopes()
+                        ->where('teacher_id', $teacherId)
+                        ->whereNull('ended_at'),
+                );
+
+                if ($headProgramKeahlianId) {
+                    $q->orWhere('program_keahlian_id', $headProgramKeahlianId);
+                }
+            });
         }
 
         return $query;

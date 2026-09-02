@@ -44,10 +44,23 @@ class ScheduleResource extends Resource
         $user = auth()->user();
 
         if ($user?->role === RoleEnum::TEACHER) {
-            $query->where('teacher_id', $user->teacher?->id);
+            $teacherId = $user->teacher?->id;
+            $headProgramKeahlianId = $user->teacher?->currentHeadOfProgramKeahlian()?->id;
+
+            $query->where(function (Builder $q) use ($teacherId, $headProgramKeahlianId) {
+                $q->where('teacher_id', $teacherId);
+
+                if ($headProgramKeahlianId) {
+                    $q->orWhereHas(
+                        'classRoom',
+                        fn ($rq) => $rq->withoutGlobalScopes()->where('program_keahlian_id', $headProgramKeahlianId),
+                    );
+                }
+            });
         }
 
         return $query;
+
     }
 
     public static function form(Schema $schema): Schema

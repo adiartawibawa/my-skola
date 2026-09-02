@@ -66,6 +66,50 @@ class Teacher extends Model
     }
 
     /**
+     * Riwayat lengkap penugasan sebagai Kepala Program Keahlian —
+     * termasuk yang sudah berakhir.
+     */
+    public function programKeahlianHeadHistories(): HasMany
+    {
+        return $this->hasMany(ProgramKeahlianHead::class);
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+    /**
+     * Program Keahlian yang saat ini dia pimpin sebagai kaprodi (jika
+     * ada).
+     */
+    public function currentHeadOfProgramKeahlian(): ?ProgramKeahlian
+    {
+        return $this->programKeahlianHeadHistories()
+            ->whereNull('ended_at')
+            ->latest('started_at')
+            ->first()
+            ?->programKeahlian;
+    }
+
+    /**
+     * Satu-satunya titik pengecekan "apakah guru ini kaprodi program
+     * X" — dipakai di semua Policy & Resource::getEloquentQuery() yang
+     * perlu memberi akses lebih luas untuk kaprodi (ClassRoom,
+     * ClassRoomTeacher, ClassRoomStudent, Schedule, Student). Kalau
+     * definisi "aktif sebagai kaprodi" berubah nanti, cukup diubah di
+     * satu tempat ini.
+     */
+    public function isHeadOfProgramKeahlian(?string $programKeahlianId): bool
+    {
+        if (! $programKeahlianId) {
+            return false;
+        }
+
+        return $this->currentHeadOfProgramKeahlian()?->id === $programKeahlianId;
+    }
+
+    /**
      * Accessor untuk mengambil atribut 'name' dari relasi User
      */
     protected function name(): Attribute
@@ -73,10 +117,5 @@ class Teacher extends Model
         return Attribute::make(
             get: fn () => $this->user?->name
         );
-    }
-
-    public function schedules(): HasMany
-    {
-        return $this->hasMany(Schedule::class);
     }
 }

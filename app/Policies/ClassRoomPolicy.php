@@ -20,19 +20,24 @@ class ClassRoomPolicy extends AdminStaffManagedPolicy
     }
 
     /**
-     * Guru boleh membuka SATU kelas kalau memang dia wali kelas AKTIF
-     * di kelas itu. currentHomeroomTeacher() sudah pakai
-     * withoutGlobalScopes() sendiri (lihat ClassRoom model) jadi aman
-     * dipanggil di sini terlepas Tahun Akademik mana yang aktif.
+     * Guru boleh membuka SATU kelas kalau:
+     * (a) dia wali kelas AKTIF di kelas itu, ATAU
+     * (b) dia kaprodi AKTIF di program keahlian kelas itu — kaprodi
+     *     otomatis bisa lihat SEMUA kelas di program-nya, tidak cuma
+     *     kelas yang dia jadi wali kelasnya.
+     * currentHomeroomTeacher() sudah pakai withoutGlobalScopes()
+     * sendiri (lihat ClassRoom model) jadi aman dipanggil di sini
+     * terlepas Tahun Akademik mana yang aktif.
      */
-    public function view(User $user, $record): bool
+    public function view(User $user, $classRoom): bool
     {
         if ($user->role === RoleEnum::ADMIN_STAFF) {
             return true;
         }
 
         if ($user->role === RoleEnum::TEACHER) {
-            return $record->currentHomeroomTeacher()?->user_id === $user->id;
+            return $classRoom->currentHomeroomTeacher()?->user_id === $user->id
+                || $user->teacher?->isHeadOfProgramKeahlian($classRoom->program_keahlian_id);
         }
 
         return false;

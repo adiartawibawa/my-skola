@@ -12,14 +12,15 @@ class SchedulePolicy extends AdminStaffManagedPolicy
         return in_array($user->role, [RoleEnum::ADMIN_STAFF, RoleEnum::TEACHER], true);
     }
 
-    public function view(User $user, $record): bool
+    public function view(User $user, $schedule): bool
     {
         if ($user->role === RoleEnum::ADMIN_STAFF) {
             return true;
         }
 
         if ($user->role === RoleEnum::TEACHER) {
-            return $record->teacher?->user_id === $user->id;
+            return $schedule->teacher?->user_id === $user->id
+                || $user->teacher?->isHeadOfProgramKeahlian($schedule->classRoom?->program_keahlian_id);
         }
 
         return false;

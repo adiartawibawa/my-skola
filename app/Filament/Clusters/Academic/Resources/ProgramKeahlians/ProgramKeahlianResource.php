@@ -6,6 +6,7 @@ use App\Filament\Clusters\Academic\AcademicCluster;
 use App\Filament\Clusters\Academic\Resources\ProgramKeahlians\Pages\CreateProgramKeahlian;
 use App\Filament\Clusters\Academic\Resources\ProgramKeahlians\Pages\EditProgramKeahlian;
 use App\Filament\Clusters\Academic\Resources\ProgramKeahlians\Pages\ListProgramKeahlians;
+use App\Filament\Clusters\Academic\Resources\ProgramKeahlians\RelationManagers\ProgramKeahlianHeadsRelationManager;
 use App\Filament\Clusters\Academic\Resources\ProgramKeahlians\Schemas\ProgramKeahlianForm;
 use App\Filament\Clusters\Academic\Resources\ProgramKeahlians\Tables\ProgramKeahliansTable;
 use App\Models\ProgramKeahlian;
@@ -44,7 +45,7 @@ class ProgramKeahlianResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ProgramKeahlianHeadsRelationManager::class,
         ];
     }
 

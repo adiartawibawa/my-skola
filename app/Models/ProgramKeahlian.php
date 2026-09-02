@@ -41,6 +41,20 @@ class ProgramKeahlian extends Model
         return $this->hasMany(Subject::class);
     }
 
+    public function heads(): HasMany
+    {
+        return $this->hasMany(ProgramKeahlianHead::class);
+    }
+
+    public function currentHead(): ?Teacher
+    {
+        return $this->heads()
+            ->whereNull('ended_at')
+            ->latest('started_at')
+            ->first()
+            ?->teacher;
+    }
+
     /**
      * Scopes
      */
