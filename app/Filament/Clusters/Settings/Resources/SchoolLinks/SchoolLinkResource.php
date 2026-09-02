@@ -24,6 +24,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class SchoolLinkResource extends Resource
 {
@@ -36,6 +37,10 @@ class SchoolLinkResource extends Resource
     protected static ?string $navigationLabel = 'Aplikasi & Tautan';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Lanjutan & Integrasi';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -107,9 +112,4 @@ class SchoolLinkResource extends Resource
             'index' => ManageSchoolLinks::route('/'),
         ];
     }
-
-    // public static function canAccess(): bool
-    // {
-    //     return auth()->user()?->role->isAdmin() ?? false;
-    // }
 }

@@ -11,6 +11,7 @@ use Filament\Pages\SettingsPage;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use UnitEnum;
 
 class ManageGeneral extends SettingsPage
 {
@@ -22,12 +23,18 @@ class ManageGeneral extends SettingsPage
 
     protected static ?string $navigationLabel = 'Umum';
 
+    protected static string|UnitEnum|null $navigationGroup = 'Sistem & Tampilan';
+
+    protected static ?int $navigationSort = 1;
+
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 Section::make('Identitas Sekolah')
                     ->columns(2)
+                    ->columnSpanFull()
+                    ->collapsible()
                     ->components([
                         TextInput::make('school_name')->label('Nama Sekolah')->required(),
                         TextInput::make('tagline')->label('Tagline'),
@@ -37,6 +44,8 @@ class ManageGeneral extends SettingsPage
 
                 Section::make('Kontak')
                     ->columns(2)
+                    ->columnSpanFull()
+                    ->collapsible()
                     ->components([
                         TextInput::make('address')->label('Alamat')->columnSpanFull(),
                         TextInput::make('email')->email(),
@@ -48,6 +57,8 @@ class ManageGeneral extends SettingsPage
 
                 Section::make('Media Sosial')
                     ->columns(3)
+                    ->columnSpanFull()
+                    ->collapsible()
                     ->components([
                         TextInput::make('instagram_url')->label('Instagram')->url(),
                         TextInput::make('youtube_url')->label('YouTube')->url(),
@@ -55,9 +66,4 @@ class ManageGeneral extends SettingsPage
                     ]),
             ]);
     }
-
-    // public static function canAccess(): bool
-    // {
-    //     return auth()->user()?->role->isAdmin() ?? false;
-    // }
 }

@@ -1,9 +1,10 @@
 <x-layouts.guest title="Program Keahlian"
     description="Daftar lengkap program keahlian di {{ config('app.name') }} beserta kompetensi dan prospek kariernya.">
     <section class="max-w-4xl mx-auto px-4 pt-16 pb-12 text-center">
-        <p class="font-mono text-xs tracking-[0.2em] uppercase text-[#8C1F2E] mb-3">Program Keahlian</p>
-        <h1 class="font-display text-4xl font-bold text-[#241512] mb-4">Kompetensi untuk Dunia Kerja</h1>
-        <p class="text-[#241512]/60 leading-relaxed max-w-2xl mx-auto">
+        <p class="font-mono text-xs tracking-[0.2em] uppercase text-[var(--brand-primary-light)] mb-3">Program Keahlian
+        </p>
+        <h1 class="font-display text-4xl font-bold text-[var(--brand-ink)] mb-4">Kompetensi untuk Dunia Kerja</h1>
+        <p class="text-[var(--brand-ink)]/60 leading-relaxed max-w-2xl mx-auto">
             Setiap program keahlian dirancang bersama mitra industri agar lulusan benar-benar siap kerja,
             bukan sekadar lulus ujian.
         </p>
@@ -55,33 +56,36 @@
         ],
     ] as $program)
             <article
-                class="bg-[#FBF6EE] border border-[#C89B3C]/30 rounded-2xl p-6 sm:p-8 border-l-4 border-l-[#6B1220]">
+                class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/30 rounded-2xl p-6 sm:p-8 border-l-4 border-l-[var(--brand-primary)]">
                 <div class="flex flex-wrap items-baseline gap-3 mb-3">
-                    <span class="font-mono text-xs tracking-widest text-[#8C1F2E]">{{ $program['kode'] }}</span>
-                    <h2 class="font-display text-xl font-bold text-[#241512]">{{ $program['nama'] }}</h2>
+                    <span
+                        class="font-mono text-xs tracking-widest text-[var(--brand-primary-light)]">{{ $program['kode'] }}</span>
+                    <h2 class="font-display text-xl font-bold text-[var(--brand-ink)]">{{ $program['nama'] }}</h2>
                 </div>
 
-                <p class="text-sm text-[#241512]/65 leading-relaxed mb-5">{{ $program['desc'] }}</p>
+                <p class="text-sm text-[var(--brand-ink)]/65 leading-relaxed mb-5">{{ $program['desc'] }}</p>
 
                 <div class="grid sm:grid-cols-2 gap-6">
                     <div>
-                        <h3 class="font-mono text-xs tracking-widest uppercase text-[#241512]/40 mb-2">Kompetensi
+                        <h3 class="font-mono text-xs tracking-widest uppercase text-[var(--brand-ink)]/40 mb-2">
+                            Kompetensi
                             Dipelajari</h3>
-                        <ul class="space-y-1.5 text-sm text-[#241512]/75">
+                        <ul class="space-y-1.5 text-sm text-[var(--brand-ink)]/75">
                             @foreach ($program['kompetensi'] as $kompetensi)
                                 <li class="flex gap-2">
-                                    <span class="text-[#C89B3C]">&#8226;</span> {{ $kompetensi }}
+                                    <span class="text-[var(--brand-accent)]">&#8226;</span> {{ $kompetensi }}
                                 </li>
                             @endforeach
                         </ul>
                     </div>
                     <div>
-                        <h3 class="font-mono text-xs tracking-widest uppercase text-[#241512]/40 mb-2">Prospek Karier
+                        <h3 class="font-mono text-xs tracking-widest uppercase text-[var(--brand-ink)]/40 mb-2">Prospek
+                            Karier
                         </h3>
                         <div class="flex flex-wrap gap-2">
                             @foreach ($program['karier'] as $karier)
                                 <span
-                                    class="text-xs px-3 py-1 rounded-full bg-[#F3EADA] text-[#6B1220] font-medium">{{ $karier }}</span>
+                                    class="text-xs px-3 py-1 rounded-full bg-[#F3EADA] text-[var(--brand-primary)] font-medium">{{ $karier }}</span>
                             @endforeach
                         </div>
                     </div>
@@ -90,13 +94,13 @@
         @endforeach
     </section>
 
-    <section class="bg-gradient-to-br from-[#6B1220] to-[#4A0D17] py-16">
+    <section class="bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-primary-dark)] py-16">
         <div class="max-w-2xl mx-auto px-4 text-center">
-            <h2 class="font-display text-2xl sm:text-3xl font-bold text-[#FBF6EE] mb-4">
+            <h2 class="font-display text-2xl sm:text-3xl font-bold text-[var(--brand-paper)] mb-4">
                 Tertarik dengan Salah Satu Program Ini?
             </h2>
             <a href="#"
-                class="inline-block bg-[#C89B3C] text-[#4A0D17] text-sm font-semibold px-6 py-3 rounded-full hover:bg-[#E4C878] transition">
+                class="inline-block bg-[var(--brand-accent)] text-[var(--brand-primary-dark)] text-sm font-semibold px-6 py-3 rounded-full hover:bg-[var(--brand-accent-light)] transition">
                 Daftar Sekarang
             </a>
         </div>

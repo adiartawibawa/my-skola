@@ -6,11 +6,11 @@
 
     <div class="flex justify-end gap-2 mt-2">
         <button type="button" @click="scrollBy(-320)" aria-label="Sebelumnya"
-            class="w-9 h-9 rounded-full border border-[#C89B3C]/40 flex items-center justify-center text-[#6B1220] hover:bg-[#6B1220] hover:text-[#FBF6EE] hover:border-[#6B1220] transition">
+            class="w-9 h-9 rounded-full border border-[var(--brand-accent)]/40 flex items-center justify-center text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-[var(--brand-paper)] hover:border-[var(--brand-primary)] transition">
             &larr;
         </button>
         <button type="button" @click="scrollBy(320)" aria-label="Berikutnya"
-            class="w-9 h-9 rounded-full border border-[#C89B3C]/40 flex items-center justify-center text-[#6B1220] hover:bg-[#6B1220] hover:text-[#FBF6EE] hover:border-[#6B1220] transition">
+            class="w-9 h-9 rounded-full border border-[var(--brand-accent)]/40 flex items-center justify-center text-[var(--brand-primary)] hover:bg-[var(--brand-primary)] hover:text-[var(--brand-paper)] hover:border-[var(--brand-primary)] transition">
             &rarr;
         </button>
     </div>

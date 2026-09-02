@@ -1,7 +1,11 @@
 <?php
 
+use App\Settings\AppearanceSettings;
+use App\Settings\AppSettings;
 use App\Settings\GeneralSettings;
 use App\Settings\MailSettings;
+use App\Settings\NotificationSettings;
+use App\Settings\SeoSettings;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelSettings\SettingsCasts\DataCast;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeInterfaceCast;
@@ -18,6 +22,10 @@ return [
     'settings' => [
         GeneralSettings::class,
         MailSettings::class,
+        AppSettings::class,
+        NotificationSettings::class,
+        SeoSettings::class,
+        AppearanceSettings::class,
     ],
 
     /*
@@ -73,7 +81,7 @@ return [
     'cache' => [
         'enabled' => (bool) env('SETTINGS_CACHE_ENABLED', false),
         'store' => null,
-        'prefix' => null,
+        'prefix' => 'settings',
         'ttl' => null,
 
         /*

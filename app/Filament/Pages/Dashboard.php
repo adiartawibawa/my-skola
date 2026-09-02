@@ -2,6 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\AcademicCalendarWidget;
+use App\Filament\Widgets\AcademicOverviewStats;
+use App\Filament\Widgets\ClassRoomsWithoutHomeroomWidget;
+use App\Filament\Widgets\ClassRoomsWithoutScheduleWidget;
+use App\Filament\Widgets\StudentsByProgramKeahlianChart;
+use App\Filament\Widgets\TodayScheduleWidget;
+use App\Filament\Widgets\UpcomingAcademicCalendarWidget;
 use App\Models\AcademicYear;
 use App\Support\AcademicYearContext;
 use BackedEnum;
@@ -78,6 +85,19 @@ class Dashboard extends BaseDashboard
             return [];
         }
 
-        return parent::getWidgets();
+        // return array_filter(
+        //     parent::getWidgets(),
+        //     fn ($widget) => $widget !== AcademicCalendarWidget::class
+        // );
+
+        return [
+            AcademicCalendarWidget::class,
+            AcademicOverviewStats::class,
+            // ClassRoomsWithoutHomeroomWidget::class,
+            // ClassRoomsWithoutScheduleWidget::class,
+            StudentsByProgramKeahlianChart::class,
+            // TodayScheduleWidget::class,
+            // UpcomingAcademicCalendarWidget::class,
+        ];
     }
 }

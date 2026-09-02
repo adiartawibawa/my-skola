@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Settings\AppSettings;
 use App\Settings\MailSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->applyDynamicMailSettings();
+        $this->applyDynamicAppSettings();
     }
 
     /**
@@ -80,5 +82,30 @@ class AppServiceProvider extends ServiceProvider
             'mail.from.address' => $mail->from_address,
             'mail.from.name' => $mail->from_name,
         ]);
+    }
+
+    protected function applyDynamicAppSettings(): void
+    {
+        if (! Schema::hasTable('settings')) {
+            return;
+        }
+
+        try {
+            $app = app(AppSettings::class);
+        } catch (Throwable $e) {
+            return;
+        }
+
+        // date_default_timezone_set() perlu dipanggil ulang di sini karena Laravel
+        // sudah men-set timezone dari .env lebih awal (sebelum service provider ini
+        // boot) — override config() saja tidak cukup untuk fungsi date/Carbon.
+        date_default_timezone_set($app->timezone);
+
+        config([
+            'app.timezone' => $app->timezone,
+            'app.locale' => $app->locale,
+        ]);
+
+        app()->setLocale($app->locale);
     }
 }

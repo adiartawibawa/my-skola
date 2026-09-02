@@ -6,6 +6,18 @@
     'type' => 'website',
 ])
 
+@php
+    $seo = app(\App\Settings\SeoSettings::class);
+
+    $resolvedTitle = $title ?? $seo->default_meta_title;
+    $resolvedDescription = $description ?? $seo->default_meta_description;
+    $resolvedOgImage = $ogImage ?? $seo->default_og_image;
+@endphp
+
+@php
+    $appearance = app(\App\Settings\AppearanceSettings::class);
+@endphp
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -13,24 +25,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ $title ?? config('app.name') }}@if ($title && $title !== config('app.name'))
+    <title>{{ $resolvedTitle }}@if ($title && $title !== $seo->default_meta_title)
             — {{ config('app.name') }}
         @endif
     </title>
-    <meta name="description" content="{{ $description ?? config('app.name') . ' — Sistem Informasi Akademik' }}">
+    <meta name="description" content="{{ $resolvedDescription }}">
     <link rel="canonical" href="{{ $canonicalUrl ?? url()->current() }}">
 
-    <meta property="og:type" content="{{ $type }}">
-    <meta property="og:site_name" content="{{ config('app.name') }}">
-    <meta property="og:title" content="{{ $title ?? config('app.name') }}">
-    <meta property="og:description" content="{{ $description ?? '' }}">
-    @if ($ogImage)
-        <meta property="og:image" content="{{ Storage::url($ogImage) }}">
+    @unless ($seo->indexable)
+        <meta name="robots" content="noindex, nofollow">
+    @endunless
+
+    @if ($seo->google_search_console_verification)
+        <meta name="google-site-verification" content="{{ $seo->google_search_console_verification }}">
     @endif
 
+    {{-- Open Graph --}}
+    <meta property="og:type" content="{{ $type }}">
+    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:title" content="{{ $resolvedTitle }}">
+    <meta property="og:description" content="{{ $resolvedDescription }}">
+    @if ($resolvedOgImage)
+        <meta property="og:image" content="{{ Storage::url($resolvedOgImage) }}">
+    @endif
+
+    {{-- Twitter Card --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $title ?? config('app.name') }}">
-    <meta name="twitter:description" content="{{ $description ?? '' }}">
+    <meta name="twitter:title" content="{{ $resolvedTitle }}">
+    <meta name="twitter:description" content="{{ $resolvedDescription }}">
+    @if ($seo->twitter_username)
+        <meta name="twitter:site" content="@{{ $seo - > twitter_username }}">
+    @endif
 
     <link rel="alternate" type="application/rss+xml" title="{{ config('app.name') }} — Blog"
         href="{{ route('blog.feed') }}">
@@ -41,12 +66,33 @@
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
 
+    @if ($seo->google_analytics_id && $seo->indexable)
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $seo->google_analytics_id }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', '{{ $seo->google_analytics_id }}');
+        </script>
+    @endif
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @livewireStyles
 
     <style>
         :root {
+            --brand-primary: {{ $appearance->primary }};
+            --brand-primary-dark: {{ $appearance->primary_dark }};
+            --brand-primary-light: {{ $appearance->primary_light }};
+            --brand-accent: {{ $appearance->accent }};
+            --brand-accent-light: {{ $appearance->accent_light }};
+            --brand-paper: {{ $appearance->paper }};
+            --brand-ink: {{ $appearance->ink }};
+
             --font-display: 'Fraunces', serif;
             --font-body: 'Plus Jakarta Sans', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
@@ -54,6 +100,8 @@
 
         body {
             font-family: var(--font-body);
+            background: var(--brand-paper);
+            color: var(--brand-ink);
         }
 
         .font-display {

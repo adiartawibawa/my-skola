@@ -9,6 +9,7 @@ use App\Filament\Widgets\ClassRoomsWithoutScheduleWidget;
 use App\Filament\Widgets\StudentsByProgramKeahlianChart;
 use App\Filament\Widgets\TodayScheduleWidget;
 use App\Filament\Widgets\UpcomingAcademicCalendarWidget;
+use App\Settings\AppearanceSettings;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -21,6 +22,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -34,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->colors([
-                'primary' => Color::Rose,
+                'primary' => $this->resolvePrimaryColor(),
             ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -64,5 +66,18 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    protected function resolvePrimaryColor(): array
+    {
+        if (! Schema::hasTable('settings')) {
+            return Color::hex('#6B1220'); // fallback saat instalasi awal / migrate pertama
+        }
+
+        try {
+            return Color::hex(app(AppearanceSettings::class)->primary);
+        } catch (\Throwable $e) {
+            return Color::hex('#6B1220');
+        }
     }
 }

@@ -15,6 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
+use UnitEnum;
 
 class ManageMail extends SettingsPage
 {
@@ -26,12 +27,18 @@ class ManageMail extends SettingsPage
 
     protected static ?string $navigationLabel = 'Mail Server';
 
+    protected static string|UnitEnum|null $navigationGroup = 'Operasional & Komunikasi';
+
+    protected static ?int $navigationSort = 3;
+
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 Section::make('Konfigurasi SMTP')
                     ->columns(2)
+                    ->columnSpanFull()
+                    ->collapsible()
                     ->components([
                         Select::make('mailer')
                             ->options([
@@ -67,6 +74,8 @@ class ManageMail extends SettingsPage
 
                 Section::make('Pengirim Default')
                     ->columns(2)
+                    ->columnSpanFull()
+                    ->collapsible()
                     ->components([
                         TextInput::make('from_address')->label('Email Pengirim')->email()->required(),
                         TextInput::make('from_name')->label('Nama Pengirim')->required(),
@@ -105,9 +114,4 @@ class ManageMail extends SettingsPage
                 }),
         ];
     }
-
-    // public static function canAccess(): bool
-    // {
-    //     return auth()->user()?->role->isAdmin() ?? false;
-    // }
 }
