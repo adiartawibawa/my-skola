@@ -22,15 +22,15 @@ class ClassRoomEnrollmentsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('classRoom')
                     ->label('Kelas')
-                    ->getStateUsing(
-                        fn ($record) => self::resolveClassRoom($record)?->full_name ?? '—'
-                    ),
+                    ->getStateUsing(fn ($record) => self::resolveClassRoom($record)?->full_name ?? '—'),
+
+                TextColumn::make('program_keahlian')
+                    ->label('Program Keahlian')
+                    ->getStateUsing(fn ($record) => self::resolveClassRoom($record)?->programKeahlian?->name ?? '—'),
 
                 TextColumn::make('academicYear')
                     ->label('Tahun Akademik')
-                    ->getStateUsing(
-                        fn ($record) => self::resolveClassRoom($record)?->academicYear?->name ?? '—'
-                    ),
+                    ->getStateUsing(fn ($record) => self::resolveClassRoom($record)?->academicYear?->name ?? '—'),
 
                 TextColumn::make('joined_at')
                     ->label('Bergabung')
