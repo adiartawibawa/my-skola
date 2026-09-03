@@ -122,6 +122,23 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsToMany(Capability::class)->withTimestamps();
     }
 
+    public function studentLinks(): HasMany
+    {
+        return $this->hasMany(GuardianStudent::class);
+    }
+
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(Student::class, 'guardian_student')
+            ->withPivot(['relationship_type', 'verified_at'])
+            ->withTimestamps();
+    }
+
+    public function isParentOf(Student $student): bool
+    {
+        return $this->students()->whereKey($student->id)->exists();
+    }
+
     public function hasCapability(string $key): bool
     {
         return $this->relationLoaded('capabilities')

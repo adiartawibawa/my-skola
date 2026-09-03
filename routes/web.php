@@ -13,3 +13,5 @@ Route::get('/kontak', ContactPage::class)->name('contact');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 require __DIR__.'/blog.php';
+
+require __DIR__.'/auth.php';

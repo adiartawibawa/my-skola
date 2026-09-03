@@ -30,7 +30,7 @@
 
         <div class="flex items-center gap-3">
             @auth
-                <a href="{{ url('/admin') }}"
+                <a href="{{ url('/portal') }}"
                     class="text-sm font-medium text-[var(--brand-ink)]/70 hover:text-[var(--brand-primary)] transition">
                     Dashboard
                 </a>
