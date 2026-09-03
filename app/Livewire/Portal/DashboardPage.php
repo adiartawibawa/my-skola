@@ -15,6 +15,7 @@ class DashboardPage extends Component
     public function render(): View
     {
         $student = PortalContext::currentStudent();
+        $childrenSummary = auth()->user()->role->value === 'parent' ? PortalContext::childrenSummary() : collect();
         $classRoom = $student?->currentClassRoom();
 
         $todaySchedules = collect();
@@ -59,6 +60,7 @@ class DashboardPage extends Component
             'todaySchedules' => $todaySchedules,
             'upcomingEvents' => $upcomingEvents,
             'latestAnnouncements' => $latestAnnouncements,
+            'childrenSummary' => $childrenSummary,
         ])->layout('components.layouts.app', ['title' => 'Dashboard']);
     }
 

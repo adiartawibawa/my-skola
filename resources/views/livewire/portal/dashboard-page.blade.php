@@ -3,6 +3,26 @@
         Halo, {{ auth()->user()->name }} 👋
     </h1>
 
+    @if ($childrenSummary->count() > 1)
+        <div class="mb-8">
+            <h2 class="font-semibold text-[var(--brand-ink)] mb-3 text-sm">Ringkasan Semua Anak</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($childrenSummary as $item)
+                    <div
+                        class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-4 {{ $student?->id === $item['student']->id ? 'border-l-4 border-l-[var(--brand-primary)]' : '' }}">
+                        <p class="font-semibold text-[var(--brand-ink)] text-sm">{{ $item['student']->user->name }}</p>
+                        <p class="text-xs text-[var(--brand-ink)]/50 mt-0.5">
+                            {{ $item['class_room']?->full_name ?? 'Belum ada kelas' }}
+                        </p>
+                        <p class="text-xs text-[var(--brand-primary-light)] font-mono mt-2">
+                            {{ $item['today_schedule_count'] }} pelajaran hari ini
+                        </p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @if (!$student)
         <x-portal-empty-student :is-parent="auth()->user()->role->value === 'parent'" />
     @else
@@ -13,7 +33,8 @@
         <div class="grid sm:grid-cols-3 gap-4 mb-8">
             <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5">
                 <p class="text-xs font-mono uppercase tracking-wide text-[var(--brand-primary-light)] mb-1">Kelas</p>
-                <p class="font-display text-xl font-bold text-[var(--brand-ink)]">{{ $classRoom?->full_name ?? '—' }}</p>
+                <p class="font-display text-xl font-bold text-[var(--brand-ink)]">{{ $classRoom?->full_name ?? '—' }}
+                </p>
             </div>
             <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5">
                 <p class="text-xs font-mono uppercase tracking-wide text-[var(--brand-primary-light)] mb-1">Wali Kelas

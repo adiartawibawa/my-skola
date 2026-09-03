@@ -26,7 +26,7 @@ class ChildSwitcher extends Component
     {
         PortalContext::setActiveChild($value);
 
-        $this->redirect(url()->current(), navigate: false);
+        $this->js('window.location.reload()');
     }
 
     public function render(): View

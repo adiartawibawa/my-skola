@@ -2,7 +2,9 @@
 
 namespace App\Support;
 
+use App\Enums\DayOfWeekEnum;
 use App\Enums\RoleEnum;
+use App\Models\Schedule;
 use App\Models\Student;
 use Illuminate\Support\Collection;
 
@@ -67,5 +69,38 @@ class PortalContext
         }
 
         session([static::SESSION_KEY => $studentId]);
+    }
+
+    /**
+     * Ringkasan singkat SEMUA anak tertaut (bukan cuma yang aktif di
+     * switcher) — dipakai khusus dashboard Orang Tua dengan anak lebih
+     * dari satu. Sengaja dipisah dari currentStudent() karena tujuannya
+     * beda: currentStudent() untuk "lihat detail satu anak", ini untuk
+     * "bandingkan sekilas semua anak".
+     */
+    public static function childrenSummary(): Collection
+    {
+        return static::availableChildren()->map(function (Student $child) {
+            $classRoom = $child->currentClassRoom();
+
+            return [
+                'student' => $child,
+                'class_room' => $classRoom,
+                'today_schedule_count' => $classRoom
+                    ? Schedule::query()
+                        ->where('class_room_id', $classRoom->id)
+                        ->where('day_of_week', static::todayDayOfWeek()->value)
+                        ->count()
+                    : 0,
+            ];
+        });
+    }
+
+    protected static function todayDayOfWeek(): DayOfWeekEnum
+    {
+        $isoDay = now()->dayOfWeekIso;
+
+        return collect(DayOfWeekEnum::cases())
+            ->first(fn ($day) => $day->order() === $isoDay) ?? DayOfWeekEnum::SENIN;
     }
 }
