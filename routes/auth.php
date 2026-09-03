@@ -4,8 +4,12 @@ use App\Livewire\Auth\ForgotPasswordPage;
 use App\Livewire\Auth\LoginPage;
 use App\Livewire\Auth\RegisterPage;
 use App\Livewire\Auth\ResetPasswordPage;
+use App\Livewire\Portal\AnnouncementsPage;
+use App\Livewire\Portal\CalendarPage;
 use App\Livewire\Portal\DashboardPage;
 use App\Livewire\Portal\LinkChildPage;
+use App\Livewire\Portal\ProfilePage;
+use App\Livewire\Portal\SchedulePage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +34,10 @@ Route::middleware(['auth', 'role:student,parent'])
     ->name('portal.')
     ->group(function () {
         Route::get('/', DashboardPage::class)->name('dashboard');
+        Route::get('/jadwal', SchedulePage::class)->name('schedule');
+        Route::get('/kalender', CalendarPage::class)->name('calendar');
+        Route::get('/pengumuman', AnnouncementsPage::class)->name('announcements');
+        Route::get('/profil', ProfilePage::class)->name('profile');
 
         Route::get('/tautkan-anak', LinkChildPage::class)
             ->middleware('role:parent')

@@ -2,14 +2,102 @@
     <h1 class="font-display text-2xl font-bold text-[var(--brand-ink)] mb-2">
         Halo, {{ auth()->user()->name }} 👋
     </h1>
-    <p class="text-sm text-[var(--brand-ink)]/50">
-        Dashboard lengkap (jadwal, kalender akademik, pengumuman) sedang disiapkan.
-    </p>
 
-    @if (auth()->user()->role->value === 'parent' && auth()->user()->students()->doesntExist())
-        <div class="mt-6 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl p-4">
-            Kamu belum menautkan data anak.
-            <a href="{{ route('portal.link-child') }}" class="font-semibold underline">Tautkan sekarang</a>.
+    @if (!$student)
+        <x-portal-empty-student :is-parent="auth()->user()->role->value === 'parent'" />
+    @else
+        <p class="text-sm text-[var(--brand-ink)]/50 mb-6">
+            Menampilkan data untuk <span class="font-semibold text-[var(--brand-ink)]">{{ $student->user->name }}</span>
+        </p>
+
+        <div class="grid sm:grid-cols-3 gap-4 mb-8">
+            <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5">
+                <p class="text-xs font-mono uppercase tracking-wide text-[var(--brand-primary-light)] mb-1">Kelas</p>
+                <p class="font-display text-xl font-bold text-[var(--brand-ink)]">{{ $classRoom?->full_name ?? '—' }}</p>
+            </div>
+            <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5">
+                <p class="text-xs font-mono uppercase tracking-wide text-[var(--brand-primary-light)] mb-1">Wali Kelas
+                </p>
+                <p class="font-display text-xl font-bold text-[var(--brand-ink)]">{{ $homeroomTeacher?->name ?? '—' }}
+                </p>
+            </div>
+            <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5">
+                <p class="text-xs font-mono uppercase tracking-wide text-[var(--brand-primary-light)] mb-1">Program
+                    Keahlian</p>
+                <p class="font-display text-xl font-bold text-[var(--brand-ink)]">
+                    {{ $classRoom?->programKeahlian?->name ?? '—' }}</p>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+            {{-- Jadwal hari ini --}}
+            <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-[var(--brand-ink)]">Jadwal Hari Ini</h2>
+                    @if (Route::has('portal.schedule'))
+                        <a href="{{ route('portal.schedule') }}"
+                            class="text-xs text-[var(--brand-primary)] hover:underline">Lihat semua &rarr;</a>
+                    @endif
+                </div>
+
+                @forelse ($todaySchedules as $schedule)
+                    <div
+                        class="flex items-center justify-between py-2 border-b border-[var(--brand-accent)]/10 last:border-0">
+                        <div>
+                            <p class="text-sm font-medium text-[var(--brand-ink)]">{{ $schedule->subject->name }}</p>
+                            <p class="text-xs text-[var(--brand-ink)]/50">{{ $schedule->teacher->name }}</p>
+                        </div>
+                        <span class="text-xs font-mono text-[var(--brand-ink)]/60">
+                            {{ $schedule->start_time->format('H:i') }}–{{ $schedule->end_time->format('H:i') }}
+                        </span>
+                    </div>
+                @empty
+                    <p class="text-sm text-[var(--brand-ink)]/40">Tidak ada jadwal hari ini.</p>
+                @endforelse
+            </div>
+
+            {{-- Agenda terdekat --}}
+            <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-[var(--brand-ink)]">Agenda Terdekat</h2>
+                    @if (Route::has('portal.calendar'))
+                        <a href="{{ route('portal.calendar') }}"
+                            class="text-xs text-[var(--brand-primary)] hover:underline">Lihat semua &rarr;</a>
+                    @endif
+                </div>
+
+                @forelse ($upcomingEvents as $event)
+                    <div
+                        class="flex items-center justify-between py-2 border-b border-[var(--brand-accent)]/10 last:border-0">
+                        <p class="text-sm font-medium text-[var(--brand-ink)]">{{ $event->event_name }}</p>
+                        <span
+                            class="text-xs font-mono text-[var(--brand-ink)]/60">{{ $event->event_date->translatedFormat('d M') }}</span>
+                    </div>
+                @empty
+                    <p class="text-sm text-[var(--brand-ink)]/40">Tidak ada agenda terdekat.</p>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Pengumuman terbaru --}}
+        <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-5 mt-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-semibold text-[var(--brand-ink)]">Pengumuman Terbaru</h2>
+                @if (Route::has('portal.announcements'))
+                    <a href="{{ route('portal.announcements') }}"
+                        class="text-xs text-[var(--brand-primary)] hover:underline">Lihat semua &rarr;</a>
+                @endif
+            </div>
+
+            @forelse ($latestAnnouncements as $announcement)
+                <div class="py-2 border-b border-[var(--brand-accent)]/10 last:border-0">
+                    <p class="text-sm font-medium text-[var(--brand-ink)]">{{ $announcement->title }}</p>
+                    <p class="text-xs text-[var(--brand-ink)]/50">
+                        {{ $announcement->publish_at?->translatedFormat('d M Y') }}</p>
+                </div>
+            @empty
+                <p class="text-sm text-[var(--brand-ink)]/40">Belum ada pengumuman.</p>
+            @endforelse
         </div>
     @endif
 </div>
