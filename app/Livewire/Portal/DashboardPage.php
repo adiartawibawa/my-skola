@@ -6,6 +6,7 @@ use App\Enums\DayOfWeekEnum;
 use App\Models\AcademicCalendar;
 use App\Models\Announcement;
 use App\Models\Schedule;
+use App\Models\SchoolLink;
 use App\Support\PortalContext;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -14,6 +15,15 @@ class DashboardPage extends Component
 {
     public function render(): View
     {
+        $user = auth()->user();
+
+        if ($user->role->isStaff()) {
+            return view('livewire.portal.dashboard-page', [
+                'isStaff' => true,
+                'appLinks' => SchoolLink::query()->active()->forRole($user->role)->get(),
+            ])->layout('components.layouts.app', ['title' => 'Dashboard']);
+        }
+
         $student = PortalContext::currentStudent();
         $childrenSummary = auth()->user()->role->value === 'parent' ? PortalContext::childrenSummary() : collect();
         $classRoom = $student?->currentClassRoom();
@@ -54,6 +64,7 @@ class DashboardPage extends Component
         }
 
         return view('livewire.portal.dashboard-page', [
+            'isStaff' => false,
             'student' => $student,
             'classRoom' => $classRoom,
             'homeroomTeacher' => $classRoom?->currentHomeroomTeacher(),

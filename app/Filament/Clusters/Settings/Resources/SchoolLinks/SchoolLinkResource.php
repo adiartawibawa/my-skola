@@ -3,6 +3,7 @@
 namespace App\Filament\Clusters\Settings\Resources\SchoolLinks;
 
 use App\Enums\LinkCategory;
+use App\Enums\RoleEnum;
 use App\Filament\Clusters\Settings\Resources\SchoolLinks\Pages\ManageSchoolLinks;
 use App\Filament\Clusters\Settings\SettingsCluster;
 use App\Models\SchoolLink;
@@ -64,6 +65,12 @@ class SchoolLinkResource extends Resource
                     ->options(LinkCategory::options())
                     ->required(),
 
+                Select::make('roles')
+                    ->label('Batasi ke Role (opsional)')
+                    ->options(RoleEnum::options())
+                    ->multiple()
+                    ->helperText('Kosongkan agar tautan ini publik dan tampil di menu "Aplikasi" untuk semua pengunjung. Isi satu atau lebih role untuk membuatnya privat — hanya tampil sebagai kartu di Dashboard Portal untuk role yang dipilih, tidak akan muncul di menu publik.'),
+
                 TextInput::make('order')
                     ->numeric()
                     ->default(0)
@@ -88,6 +95,14 @@ class SchoolLinkResource extends Resource
                 ImageColumn::make('logo')->circular(),
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('category')->formatStateUsing(fn (LinkCategory $state) => $state->label())->badge(),
+                TextColumn::make('roles')
+                    ->label('Akses')
+                    ->formatStateUsing(
+                        fn ($state): string => filled($state)
+                            ? collect((array) $state)->map(fn (string $role) => RoleEnum::from($role)->label())->join(', ')
+                            : 'Publik')
+                    ->badge()
+                    ->color(fn ($state): string => filled($state) ? 'warning' : 'success'),
                 TextColumn::make('url')->limit(30)->url(fn ($record) => $record->url, true),
                 IconColumn::make('is_featured')->boolean()->label('Header'),
                 IconColumn::make('is_active')->boolean(),

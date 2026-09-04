@@ -29,7 +29,7 @@ Route::post('/logout', function (Request $request) {
     return redirect('/');
 })->middleware('auth')->name('logout');
 
-Route::middleware(['auth', 'role:student,parent'])
+Route::middleware(['auth', 'role:student,parent,super_admin,school_admin,principal,teacher,admin_staff'])
     ->prefix('portal')
     ->name('portal.')
     ->group(function () {

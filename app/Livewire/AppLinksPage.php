@@ -13,6 +13,7 @@ class AppLinksPage extends Component
     {
         $grouped = SchoolLink::query()
             ->active()
+            ->public()
             ->get()
             ->groupBy(fn (SchoolLink $link) => $link->category->value);
 

@@ -1,5 +1,5 @@
 @php
-    $links = \App\Models\SchoolLink::query()->active()->featured()->limit(6)->get();
+    $links = \App\Models\SchoolLink::query()->active()->public()->featured()->limit(6)->get();
 @endphp
 
 @if ($links->isNotEmpty())

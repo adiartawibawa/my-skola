@@ -171,4 +171,26 @@ enum RoleEnum: string
             ])
             ->toArray();
     }
+
+    /**
+     * Role yang bisa masuk panel Filament (lihat User::canAccessPanel())
+     * DAN yang dapat kartu "aplikasi" di Dashboard Portal berbasis
+     * SchoolLink::forRole(). Satu sumber kebenaran — jangan duplikasi
+     * daftar ini di tempat lain.
+     */
+    public static function staffRoles(): array
+    {
+        return [
+            self::SUPER_ADMIN,
+            self::SCHOOL_ADMIN,
+            self::PRINCIPAL,
+            self::TEACHER,
+            self::ADMIN_STAFF,
+        ];
+    }
+
+    public function isStaff(): bool
+    {
+        return in_array($this, self::staffRoles(), true);
+    }
 }

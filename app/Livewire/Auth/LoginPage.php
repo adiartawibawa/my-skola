@@ -45,11 +45,7 @@ class LoginPage extends Component
         RateLimiter::clear($throttleKey);
         request()->session()->regenerate();
 
-        $user = auth()->user();
-
-        return $user->role->isAdmin() || $user->role->isEducator() || $user->role->value === 'admin_staff'
-            ? redirect()->intended('/admin')
-            : redirect()->intended(route('portal.dashboard'));
+        return redirect()->intended(route('portal.dashboard'));
     }
 
     public function render(): View
