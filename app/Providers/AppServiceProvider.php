@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Models\ClassRoomStudent;
-use App\Observers\PromoteGraduateToAlumniObserver;
+use App\Observers\SyncUserAccountOnEnrollmentStatusChangeObserver;
 use App\Settings\AppSettings;
 use App\Settings\MailSettings;
 use Carbon\CarbonImmutable;
@@ -29,11 +29,38 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->configureDefaults();
-        $this->applyDynamicMailSettings();
-        $this->applyDynamicAppSettings();
+        if (! $this->isRunningDatabaseSetupCommand()) {
+            $this->configureDefaults();
+            $this->applyDynamicMailSettings();
+            $this->applyDynamicAppSettings();
+        }
+        ClassRoomStudent::observe(SyncUserAccountOnEnrollmentStatusChangeObserver::class);
+    }
 
-        ClassRoomStudent::observe(PromoteGraduateToAlumniObserver::class);
+    /**
+     * Hindari membaca Settings dari database saat sedang menjalankan
+     * command yang justru sedang MEMBANGUN/MENGUBAH struktur database
+     * itu sendiri — menghindari race condition "tabel settings ada,
+     * tapi baris datanya belum sempat ter-seed migration lain".
+     */
+    protected function isRunningDatabaseSetupCommand(): bool
+    {
+        if (! $this->app->runningInConsole()) {
+            return false;
+        }
+
+        $command = $_SERVER['argv'][1] ?? null;
+
+        return in_array($command, [
+            'migrate',
+            'migrate:fresh',
+            'migrate:refresh',
+            'migrate:rollback',
+            'migrate:reset',
+            'migrate:install',
+            'db:seed',
+            'db:wipe',
+        ], true);
     }
 
     /**
@@ -65,12 +92,11 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function applyDynamicMailSettings(): void
     {
-        // Guard: tabel settings mungkin belum ada saat instalasi awal / migrate pertama kali.
-        if (! Schema::hasTable('settings')) {
-            return;
-        }
-
         try {
+            if (! Schema::hasTable('settings')) {
+                return;
+            }
+
             $mail = app(MailSettings::class);
         } catch (Throwable $e) {
             return;
@@ -90,19 +116,16 @@ class AppServiceProvider extends ServiceProvider
 
     protected function applyDynamicAppSettings(): void
     {
-        if (! Schema::hasTable('settings')) {
-            return;
-        }
-
         try {
+            if (! Schema::hasTable('settings')) {
+                return;
+            }
+
             $app = app(AppSettings::class);
         } catch (Throwable $e) {
             return;
         }
 
-        // date_default_timezone_set() perlu dipanggil ulang di sini karena Laravel
-        // sudah men-set timezone dari .env lebih awal (sebelum service provider ini
-        // boot) — override config() saja tidak cukup untuk fungsi date/Carbon.
         date_default_timezone_set($app->timezone);
 
         config([
