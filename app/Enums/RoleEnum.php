@@ -11,6 +11,7 @@ enum RoleEnum: string
     case STUDENT = 'student';
     case PARENT = 'parent';
     case ADMIN_STAFF = 'admin_staff';
+    case ALUMNI = 'alumni';
     case USER = 'user';
 
     /**
@@ -26,6 +27,7 @@ enum RoleEnum: string
             self::STUDENT => 'Siswa',
             self::PARENT => 'Orang Tua/Wali',
             self::ADMIN_STAFF => 'Tata Usaha',
+            self::ALUMNI => 'Alumni',
             self::USER => 'Pengguna/Tamu',
         };
     }
@@ -144,6 +146,7 @@ enum RoleEnum: string
             self::TEACHER => 50,
             self::STUDENT => 30,
             self::PARENT => 20,
+            self::ALUMNI => 15,
             self::USER => 10,
         };
     }

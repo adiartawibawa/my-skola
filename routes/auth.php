@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Auth\AlumniRegisterPage;
 use App\Livewire\Auth\ForgotPasswordPage;
 use App\Livewire\Auth\LoginPage;
 use App\Livewire\Auth\RegisterPage;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     Route::get('/login', LoginPage::class)->name('login');
     Route::get('/register', RegisterPage::class)->name('register');
+    Route::get('/register/alumni', AlumniRegisterPage::class)->name('register.alumni');
     Route::get('/forgot-password', ForgotPasswordPage::class)->name('password.request');
     Route::get('/reset-password/{token}', ResetPasswordPage::class)->name('password.reset');
 });
@@ -29,7 +31,7 @@ Route::post('/logout', function (Request $request) {
     return redirect('/');
 })->middleware('auth')->name('logout');
 
-Route::middleware(['auth', 'role:student,parent,super_admin,school_admin,principal,teacher,admin_staff'])
+Route::middleware(['auth', 'role:student,parent,alumni,super_admin,school_admin,principal,teacher,admin_staff'])
     ->prefix('portal')
     ->name('portal.')
     ->group(function () {

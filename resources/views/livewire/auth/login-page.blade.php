@@ -36,4 +36,8 @@
         Orang tua siswa belum punya akun? <a href="{{ route('register') }}"
             class="text-[var(--brand-primary)] hover:underline">Daftar</a>
     </p>
+    <p class="text-center text-sm text-[var(--brand-ink)]/50 mt-2">
+        Alumni belum punya akun? <a href="{{ route('register.alumni') }}"
+            class="text-[var(--brand-primary)] hover:underline">Daftar sebagai Alumni</a>
+    </p>
 </div>

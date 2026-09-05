@@ -1,15 +1,23 @@
 @php
     $isStaff = auth()->user()->role->isStaff();
 
-    $navItems = $isStaff
-        ? [['route' => 'portal.dashboard', 'label' => 'Dashboard', 'icon' => 'heroicon-o-home']]
-        : [
+    $isAlumni = auth()->user()->role->value === 'alumni';
+
+    $navItems = match (true) {
+        $isStaff => [['route' => 'portal.dashboard', 'label' => 'Dashboard', 'icon' => 'heroicon-o-home']],
+        $isAlumni => [
+            ['route' => 'portal.dashboard', 'label' => 'Dashboard', 'icon' => 'heroicon-o-home'],
+            ['route' => 'portal.announcements', 'label' => 'Info & Lowongan', 'icon' => 'heroicon-o-megaphone'],
+            ['route' => 'portal.profile', 'label' => 'Profil', 'icon' => 'heroicon-o-user-circle'],
+        ],
+        default => [
             ['route' => 'portal.dashboard', 'label' => 'Dashboard', 'icon' => 'heroicon-o-home'],
             ['route' => 'portal.schedule', 'label' => 'Jadwal Pelajaran', 'icon' => 'heroicon-o-calendar-days'],
             ['route' => 'portal.calendar', 'label' => 'Kalender Akademik', 'icon' => 'heroicon-o-calendar'],
             ['route' => 'portal.announcements', 'label' => 'Pengumuman', 'icon' => 'heroicon-o-megaphone'],
             ['route' => 'portal.profile', 'label' => 'Profil', 'icon' => 'heroicon-o-user-circle'],
-        ];
+        ],
+    };
 @endphp
 
 <nav class="flex-1 px-3 py-6 space-y-1 text-sm overflow-y-auto">

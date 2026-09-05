@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal;
 
 use App\Enums\DayOfWeekEnum;
+use App\Enums\RoleEnum;
 use App\Models\AcademicCalendar;
 use App\Models\Announcement;
 use App\Models\Schedule;
@@ -17,36 +18,65 @@ class DashboardPage extends Component
     {
         $user = auth()->user();
 
+        // Baseline: SEMUA key yang dipakai dashboard-page.blade.php,
+        // apa pun rolenya — supaya tidak ada satu pun cabang di bawah
+        // yang bisa "lupa" mengisi salah satu key ini.
+        $data = [
+            'isStaff' => false,
+            'isAlumni' => false,
+            'appLinks' => collect(),
+            'alumniProfile' => null,
+            'student' => null,
+            'classRoom' => null,
+            'homeroomTeacher' => null,
+            'childrenSummary' => collect(),
+            'todaySchedules' => collect(),
+            'upcomingEvents' => collect(),
+            'latestAnnouncements' => collect(),
+        ];
+
         if ($user->role->isStaff()) {
-            return view('livewire.portal.dashboard-page', [
-                'isStaff' => true,
-                'appLinks' => SchoolLink::query()->active()->forRole($user->role)->get(),
-            ])->layout('components.layouts.app', ['title' => 'Dashboard']);
+            $data['isStaff'] = true;
+            $data['appLinks'] = SchoolLink::query()->active()->forRole($user->role)->get();
+
+            return view('livewire.portal.dashboard-page', $data)
+                ->layout('components.layouts.app', ['title' => 'Dashboard']);
         }
 
+        if ($user->role === RoleEnum::ALUMNI) {
+            $data['isAlumni'] = true;
+            $data['alumniProfile'] = $user->alumniProfile;
+            $data['latestAnnouncements'] = Announcement::query()
+                ->published()
+                ->visibleTo($user)
+                ->latest('publish_at')
+                ->limit(5)
+                ->get();
+
+            return view('livewire.portal.dashboard-page', $data)
+                ->layout('components.layouts.app', ['title' => 'Dashboard']);
+        }
+
+        // Cabang Siswa/Orang Tua
         $student = PortalContext::currentStudent();
-        $childrenSummary = auth()->user()->role->value === 'parent' ? PortalContext::childrenSummary() : collect();
         $classRoom = $student?->currentClassRoom();
 
-        $todaySchedules = collect();
-        $upcomingEvents = collect();
-        $latestAnnouncements = collect();
+        $data['student'] = $student;
+        $data['classRoom'] = $classRoom;
+        $data['homeroomTeacher'] = $classRoom?->currentHomeroomTeacher();
+        $data['childrenSummary'] = $user->role->value === 'parent' ? PortalContext::childrenSummary() : collect();
 
         if ($classRoom) {
             $today = $this->resolveToday();
 
-            $todaySchedules = Schedule::query()
+            $data['todaySchedules'] = Schedule::query()
                 ->where('class_room_id', $classRoom->id)
                 ->where('day_of_week', $today->value)
                 ->with(['subject', 'teacher.user'])
                 ->orderBy('start_time')
                 ->get();
 
-            // withoutGlobalScopes(): kelas siswa bisa saja dari tahun
-            // ajaran yang sedang tidak aktif (mis. siswa kelas akhir di
-            // periode transisi) — ikuti tahun ajaran KELAS-nya, bukan
-            // tahun ajaran yang sedang aktif secara global.
-            $upcomingEvents = AcademicCalendar::query()
+            $data['upcomingEvents'] = AcademicCalendar::query()
                 ->withoutGlobalScopes()
                 ->where('academic_year_id', $classRoom->academic_year_id)
                 ->upcoming()
@@ -55,7 +85,7 @@ class DashboardPage extends Component
         }
 
         if ($student?->user) {
-            $latestAnnouncements = Announcement::query()
+            $data['latestAnnouncements'] = Announcement::query()
                 ->published()
                 ->visibleTo($student->user)
                 ->latest('publish_at')
@@ -63,23 +93,10 @@ class DashboardPage extends Component
                 ->get();
         }
 
-        return view('livewire.portal.dashboard-page', [
-            'isStaff' => false,
-            'student' => $student,
-            'classRoom' => $classRoom,
-            'homeroomTeacher' => $classRoom?->currentHomeroomTeacher(),
-            'todaySchedules' => $todaySchedules,
-            'upcomingEvents' => $upcomingEvents,
-            'latestAnnouncements' => $latestAnnouncements,
-            'childrenSummary' => $childrenSummary,
-        ])->layout('components.layouts.app', ['title' => 'Dashboard']);
+        return view('livewire.portal.dashboard-page', $data)
+            ->layout('components.layouts.app', ['title' => 'Dashboard']);
     }
 
-    /**
-     * ISO day-of-week (1=Senin..7=Minggu) — pola sama persis dengan
-     * TodayScheduleWidget di panel Filament, supaya tidak bergantung
-     * pada locale Carbon server.
-     */
     protected function resolveToday(): DayOfWeekEnum
     {
         $isoDay = now()->dayOfWeekIso;

@@ -10,10 +10,20 @@ class ProfilePage extends Component
 {
     public function render(): View
     {
+        $user = auth()->user();
+
+        if ($user->role->value === 'alumni') {
+            return view('livewire.portal.profile-page', [
+                'isAlumni' => true,
+                'alumniProfile' => $user->alumniProfile,
+            ])->layout('components.layouts.app', ['title' => 'Profil']);
+        }
+
         $student = PortalContext::currentStudent();
         $classRoom = $student?->currentClassRoom();
 
         return view('livewire.portal.profile-page', [
+            'isAlumni' => false,
             'student' => $student,
             'classRoom' => $classRoom,
             'homeroomTeacher' => $classRoom?->currentHomeroomTeacher(),

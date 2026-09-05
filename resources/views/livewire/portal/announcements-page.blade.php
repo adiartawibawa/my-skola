@@ -1,7 +1,7 @@
 <div>
     <h1 class="font-display text-2xl font-bold text-[var(--brand-ink)] mb-6">Pengumuman</h1>
 
-    @if (!$student)
+    @if (!$targetUser)
         <x-portal-empty-student :is-parent="auth()->user()->role->value === 'parent'" />
     @else
         <div class="space-y-4">

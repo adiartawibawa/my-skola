@@ -98,6 +98,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(Student::class);
     }
 
+    public function alumniProfile(): HasOne
+    {
+        return $this->hasOne(AlumniProfile::class);
+    }
+
     /**
      * Blogging System
      */

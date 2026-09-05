@@ -11,26 +11,20 @@ class AnnouncementsPage extends Component
 {
     public function render(): View
     {
-        $student = PortalContext::currentStudent();
+        $targetUser = PortalContext::targetUserForVisibility();
 
-        $announcements = collect();
-
-        if ($student?->user) {
-            // scopeVisibleTo() dipanggil dengan User milik SISWA (bukan
-            // Orang Tua yang sedang login) — supaya hasilnya identik
-            // baik dilihat lewat akun siswa sendiri maupun lewat akun
-            // orang tuanya.
-            $announcements = Announcement::query()
+        $announcements = $targetUser
+            ? Announcement::query()
                 ->published()
-                ->visibleTo($student->user)
+                ->visibleTo($targetUser)
                 ->with('creator')
                 ->orderByDesc('is_pinned')
                 ->orderByDesc('publish_at')
-                ->get();
-        }
+                ->get()
+            : collect();
 
         return view('livewire.portal.announcements-page', [
-            'student' => $student,
+            'targetUser' => $targetUser,
             'announcements' => $announcements,
         ])->layout('components.layouts.app', ['title' => 'Pengumuman']);
     }

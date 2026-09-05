@@ -1,7 +1,23 @@
 <div>
     <h1 class="font-display text-2xl font-bold text-[var(--brand-ink)] mb-6">Profil</h1>
-
-    @if (!$student)
+    @if ($isAlumni)
+        <div class="bg-[var(--brand-paper)] border border-[var(--brand-accent)]/25 rounded-xl p-6 max-w-lg">
+            <dl class="space-y-3 text-sm">
+                @foreach ([
+        'Nama' => auth()->user()->name,
+        'Email' => auth()->user()->email,
+        'Tahun Lulus' => $alumniProfile?->tahun_lulus,
+        'Program Keahlian' => $alumniProfile?->programKeahlian?->name,
+        'Status Verifikasi' => $alumniProfile?->is_verified ? 'Terverifikasi' : 'Menunggu Verifikasi',
+    ] as $label => $value)
+                    <div class="flex justify-between border-b border-[var(--brand-accent)]/10 pb-2">
+                        <dt class="text-[var(--brand-ink)]/50">{{ $label }}</dt>
+                        <dd class="text-[var(--brand-ink)] font-medium">{{ $value ?: '—' }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        </div>
+    @elseif (!$student)
         <x-portal-empty-student :is-parent="auth()->user()->role->value === 'parent'" />
     @else
         <div class="grid lg:grid-cols-2 gap-6">

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\ClassRoomStudent;
+use App\Observers\PromoteGraduateToAlumniObserver;
 use App\Settings\AppSettings;
 use App\Settings\MailSettings;
 use Carbon\CarbonImmutable;
@@ -30,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->applyDynamicMailSettings();
         $this->applyDynamicAppSettings();
+
+        ClassRoomStudent::observe(PromoteGraduateToAlumniObserver::class);
     }
 
     /**

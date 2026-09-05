@@ -6,6 +6,7 @@ use App\Enums\DayOfWeekEnum;
 use App\Enums\RoleEnum;
 use App\Models\Schedule;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Support\Collection;
 
 class PortalContext
@@ -102,5 +103,26 @@ class PortalContext
 
         return collect(DayOfWeekEnum::cases())
             ->first(fn ($day) => $day->order() === $isoDay) ?? DayOfWeekEnum::SENIN;
+    }
+
+    /**
+     * "Sudut pandang siapa" yang dipakai Announcement::scopeVisibleTo().
+     * Siswa & Alumni: dirinya sendiri. Orang Tua: anak yang sedang aktif
+     * di switcher. Staf: null (portal pengumuman bukan untuk mereka —
+     * mereka sudah punya akses penuh lewat panel admin).
+     */
+    public static function targetUserForVisibility(): ?User
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        return match ($user->role) {
+            RoleEnum::STUDENT, RoleEnum::ALUMNI => $user,
+            RoleEnum::PARENT => static::currentStudent()?->user,
+            default => null,
+        };
     }
 }
