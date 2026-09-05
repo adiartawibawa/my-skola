@@ -29,7 +29,7 @@ class GuardianStudentResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?string $navigationLabel = 'Data Tertaut Orang Tua';
+    protected static ?string $navigationLabel = 'Data Orang Tua';
 
     public static function form(Schema $schema): Schema
     {
